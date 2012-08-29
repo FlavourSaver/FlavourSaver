@@ -45,6 +45,18 @@ module FlavourSaver
       pop_state
     end
 
+    rule /\[/, :expression do
+      push_state :segment_literal
+    end
+
+    rule /([^\]]+)/, :segment_literal do |l|
+      [ :LITERAL, l ]
+    end
+
+    rule /]/, :segment_literal do
+      pop_state
+    end
+
     rule /\s+/, :expression do
       [ :WHITESPACE ]
     end

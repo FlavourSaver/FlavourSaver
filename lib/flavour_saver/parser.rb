@@ -6,9 +6,6 @@ module FlavourSaver
   class OutputNode < Node
     value :value, String
   end
-  class IdentifierNode < Node
-    value :name, String
-  end
   class ExpressionNode < Node
     # child :method, [IdentifierNode]
     value :method, Array
@@ -33,23 +30,12 @@ module FlavourSaver
     end
 
     production(:expression) do
-      # clause('EXPRESSION_START optional_whitespace object_path optional_whitespace EXPRESSION_END') do |_,_,i,_,_|
-      #   ExpressionNode.new(i, [])
-      # end
-      clause('EXPRESSION_START object_path EXPRESSION_END') do |_,i,_|
+      clause('EXPRESSION_START WHITESPACE? object WHITESPACE? EXPRESSION_END') do |_,_,i,_,_|
         ExpressionNode.new(i, [])
       end
     end
 
-    production(:optional_whitespace) do
-      clause('') {}
-      clause('WHITESPACE') { |_| }
-    end
-
-    production(:object_path) do
-      clause('IDENTIFIER') { |i| [i] }
-      clause('IDENTIFIER DOT object_path') { |i0,_,i1| [i0] + i1 }
-    end
+    nonempty_list(:object, [:IDENTIFIER, :LITERAL], :DOT)
 
     finalize
 

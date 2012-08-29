@@ -64,14 +64,40 @@ describe FlavourSaver::Lexer do
     end
 
     describe 'Object path expressions' do
-      subject { FlavourSaver::Lexer.lex "{{foo.bar}}" }
+      describe '{{foo.bar}}' do
+        subject { FlavourSaver::Lexer.lex "{{foo.bar}}" }
 
-      it 'has tokens in the correct order' do
-        subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+        it 'has tokens in the correct order' do
+          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+        end
+
+        it 'has the correct values' do
+          subject.map(&:value).compact.should == ['foo', 'bar']
+        end
       end
 
-      it 'has the correct values' do
-        subject.map(&:value).compact.should == ['foo', 'bar']
+      describe '{{foo.[10].bar}}' do
+        subject { FlavourSaver::Lexer.lex "{{foo.[10].bar}}" }
+
+        it 'has tokens in the correct order' do
+          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :LITERAL, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+        end
+
+        it 'has the correct values' do
+          subject.map(&:value).compact.should == ['foo', '10', 'bar']
+        end
+      end
+
+      describe '{{foo.[he!@#$(&@klA)].bar}}' do
+        subject { FlavourSaver::Lexer.lex '{{foo.[he!@#$(&@klA)].bar}}' }
+
+        it 'has tokens in the correct order' do
+          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :LITERAL, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+        end
+
+        it 'has the correct values' do
+          subject.map(&:value).compact.should == ['foo', 'he!@#$(&@klA)', 'bar']
+        end
       end
     end
 
