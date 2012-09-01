@@ -5,32 +5,32 @@ module FlavourSaver
 
     rule /{{{/, :default do
       push_state :expression
-      [ :TRIPPLE_EXPRESSION_START ]
+      :TEXPRST
     end
 
     rule /{{/, :default do
       push_state :expression
-      [ :EXPRESSION_START ]
+      :EXPRST
     end
 
     rule /#/, :expression do
-      [ :BLOCK_START ]
+      :HASH
     end
 
     rule /\//, :expression do
-      [ :BLOCK_END ]
+      :FWSL
     end
 
     rule /([A-Za-z]\w+)/, :expression do |name|
-      [ :IDENTIFIER, name ]
+      [ :IDENT, name ]
     end
 
     rule /\./, :expression do 
-      [ :DOT ]
+      :DOT
     end
 
     rule /\=/, :expression do
-      [ :ASSIGN ]
+      :EQ
     end
 
     rule /"/, :expression do
@@ -58,21 +58,21 @@ module FlavourSaver
     end
 
     rule /\s+/, :expression do
-      [ :WHITESPACE ]
+      :WHITE
     end
 
     rule /}}}/, :expression do
       pop_state
-      [ :TRIPPLE_EXPRESSION_END ]
+      :TEXPRE
     end
 
     rule /}}/, :expression do
       pop_state
-      [ :EXPRESSION_END ]
+      :EXPRE
     end
 
     rule /[^{{]+/, :default do |output|
-      [ :OUTPUT, output ]
+      [ :OUT, output ]
     end
   end
 end

@@ -10,17 +10,17 @@ describe FlavourSaver::Lexer do
       describe '{{foo}}' do
         subject { FlavourSaver::Lexer.lex "{{foo}}" }
 
-        it 'begins with an EXPRESSION_START' do
-          subject.first.type.should == :EXPRESSION_START
+        it 'begins with an EXPRST' do
+          subject.first.type.should == :EXPRST
         end
 
-        it 'ends with an EXPRESSION_END' do
-          subject[-2].type.should == :EXPRESSION_END
+        it 'ends with an EXPRE' do
+          subject[-2].type.should == :EXPRE
         end
 
         it 'contains only the identifier "foo"' do
           subject[1..-3].size.should == 1
-          subject[1].type.should == :IDENTIFIER
+          subject[1].type.should == :IDENT
           subject[1].value.should == 'foo'
         end
       end
@@ -29,7 +29,7 @@ describe FlavourSaver::Lexer do
         subject { FlavourSaver::Lexer.lex "{{foo bar}}" }
 
         it 'has tokens in the correct order' do
-          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :WHITESPACE, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+          subject.map(&:type).should == [ :EXPRST, :IDENT, :WHITE, :IDENT, :EXPRE, :EOS ]
         end
 
         it 'has values in the correct order' do
@@ -41,7 +41,7 @@ describe FlavourSaver::Lexer do
         subject { FlavourSaver::Lexer.lex "{{foo \"bar\"}}" }
 
         it 'has tokens in the correct order' do
-          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :WHITESPACE, :STRING, :EXPRESSION_END, :EOS ]
+          subject.map(&:type).should == [ :EXPRST, :IDENT, :WHITE, :STRING, :EXPRE, :EOS ]
         end
 
         it 'has values in the correct order' do
@@ -53,7 +53,7 @@ describe FlavourSaver::Lexer do
         subject { FlavourSaver::Lexer.lex '{{foo bar="baz" hello="goodbye"}}' }
 
         it 'has tokens in the correct order' do
-          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :WHITESPACE, :IDENTIFIER, :ASSIGN, :STRING, :WHITESPACE, :IDENTIFIER, :ASSIGN, :STRING, :EXPRESSION_END, :EOS ]
+          subject.map(&:type).should == [ :EXPRST, :IDENT, :WHITE, :IDENT, :EQ, :STRING, :WHITE, :IDENT, :EQ, :STRING, :EXPRE, :EOS ]
         end
 
         it 'has values in the correct order' do
@@ -68,7 +68,7 @@ describe FlavourSaver::Lexer do
         subject { FlavourSaver::Lexer.lex "{{foo.bar}}" }
 
         it 'has tokens in the correct order' do
-          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+          subject.map(&:type).should == [ :EXPRST, :IDENT, :DOT, :IDENT, :EXPRE, :EOS ]
         end
 
         it 'has the correct values' do
@@ -80,7 +80,7 @@ describe FlavourSaver::Lexer do
         subject { FlavourSaver::Lexer.lex "{{foo.[10].bar}}" }
 
         it 'has tokens in the correct order' do
-          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :LITERAL, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+          subject.map(&:type).should == [ :EXPRST, :IDENT, :DOT, :LITERAL, :DOT, :IDENT, :EXPRE, :EOS ]
         end
 
         it 'has the correct values' do
@@ -92,7 +92,7 @@ describe FlavourSaver::Lexer do
         subject { FlavourSaver::Lexer.lex '{{foo.[he!@#$(&@klA)].bar}}' }
 
         it 'has tokens in the correct order' do
-          subject.map(&:type).should == [ :EXPRESSION_START, :IDENTIFIER, :DOT, :LITERAL, :DOT, :IDENTIFIER, :EXPRESSION_END, :EOS ]
+          subject.map(&:type).should == [ :EXPRST, :IDENT, :DOT, :LITERAL, :DOT, :IDENT, :EXPRE, :EOS ]
         end
 
         it 'has the correct values' do
@@ -105,7 +105,7 @@ describe FlavourSaver::Lexer do
       subject { FlavourSaver::Lexer.lex "{{{foo}}}" }
 
       it 'has tokens in the correct order' do
-        subject.map(&:type).should == [ :TRIPPLE_EXPRESSION_START, :IDENTIFIER, :TRIPPLE_EXPRESSION_END, :EOS ]
+        subject.map(&:type).should == [ :TEXPRST, :IDENT, :TEXPRE, :EOS ]
       end
     end
 
@@ -115,9 +115,9 @@ describe FlavourSaver::Lexer do
       describe '{{#foo}}{{bar}}{{/foo}}' do
         it 'has tokens in the correct order' do
           subject.map(&:type).should == [
-            :EXPRESSION_START, :BLOCK_START, :IDENTIFIER, :EXPRESSION_END, 
-            :EXPRESSION_START, :IDENTIFIER, :EXPRESSION_END,
-            :EXPRESSION_START, :BLOCK_END, :IDENTIFIER, :EXPRESSION_END,
+            :EXPRST, :HASH, :IDENT, :EXPRE, 
+            :EXPRST, :IDENT, :EXPRE,
+            :EXPRST, :FWSL, :IDENT, :EXPRE,
             :EOS
           ]
         end
