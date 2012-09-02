@@ -179,6 +179,22 @@ describe FlavourSaver::Parser do
     end
   end
 
+  describe '{{../foo}}' do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{../foo}}')) }
+
+    it 'returns a parent call node' do
+      subject.first.method.first.should be_a(FlavourSaver::ParentCallNode)
+    end
+  end
+
+  describe '{{! comment}}' do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{! comment}}')) }
+
+    it 'returns a comment node' do
+      subject.first.should be_a(FlavourSaver::CommentNode)
+    end
+  end
+
   describe '{{#foo}}hello{{/foo}}' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}hello{{/foo}}')) }
 

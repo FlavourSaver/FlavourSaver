@@ -13,11 +13,15 @@ module FlavourSaver
     value :name, String
     value :arguments, Array
   end
+  class ParentCallNode < CallNode; end
   class ExpressionNode < Node
     child :method, [CallNode]
     child :block, [OutputNode]
   end
   class SafeExpressionNode < ExpressionNode ; end
+  class CommentNode < Node
+    value :comment, String
+  end
 
   class Parser < RLTK::Parser
 
@@ -39,14 +43,27 @@ module FlavourSaver
     end
 
     production(:expression) do
-      clause('EXPRST WHITE? call WHITE? EXPRE') { |_,_,e,_,_| ExpressionNode.new(e, []) }
-      clause('EXPRST HASH WHITE? call WHITE? EXPRE template EXPRST FWSL WHITE? IDENTIFIER WHITE? EXPRE') { |_,_,_,e,_,_,t,_,_,_,_,_,_| ExpressionNode.new(e,t) }
-      clause('TEXPRST WHITE? call WHITE? TEXPRE') { |_,_,e,_,_| SafeExpressionNode.new(e, []) }
+      clause('expr_start expression_contents expr_end') { |e0,e1,_| e0.new(e1,[]) }
+      clause('expr_start BANG COMMENT expr_end') { |_,_,e,_| CommentNode.new(e) }
+    end
+
+    production(:expr_start) do
+      clause('EXPRST') { |_| ExpressionNode }
+      clause('TEXPRST') { |_| SafeExpressionNode }
+    end
+
+    production(:expr_end) do
+      clause('EXPRE') { |_| }
+      clause('TEXPRE') { |_| }
+    end
+
+    production(:expression_contents) do
+      clause('WHITE? call WHITE?') { |_,e,_| e }
     end
 
     production(:call) do
       clause('object_path') { |e| e }
-      clause('object_path WHITE? arguments') { |e0,_,e1| e0.last.arguments = e1; e0 }
+      clause('object_path WHITE arguments') { |e0,_,e1| e0.last.arguments = e1; e0 }
     end
 
     production('arguments') do
@@ -76,6 +93,8 @@ module FlavourSaver
     production(:object) do
       clause('IDENT') { |e| CallNode.new(e, []) }
       clause('LITERAL') { |e| CallNode.new(e, []) }
+      clause('DOT DOT FWSL IDENT') { |_,_,_,e| ParentCallNode.new(e, []) }
+      clause('DOT DOT FWSL LITERAL') { |_,_,_,e| ParentCallNode.new(e, []) }
     end
 
     finalize

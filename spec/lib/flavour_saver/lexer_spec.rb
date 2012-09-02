@@ -109,6 +109,22 @@ describe FlavourSaver::Lexer do
       end
     end
 
+    describe 'Comment expressions' do
+      subject { FlavourSaver::Lexer.lex "{{! WAT}}" }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [ :EXPRST, :BANG, :COMMENT, :EXPRE, :EOS ]
+      end
+    end
+
+    describe 'Backtrack expression' do
+      subject { FlavourSaver::Lexer.lex "{{../foo}}" } 
+      
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [:EXPRST, :DOT, :DOT, :FWSL, :IDENT, :EXPRE, :EOS]
+      end
+    end
+
     describe 'Block Expressions' do
       subject { FlavourSaver::Lexer.lex "{{#foo}}{{bar}}{{/foo}}" }
 

@@ -21,6 +21,16 @@ module FlavourSaver
       :FWSL
     end
 
+    rule /\!/, :expression do
+      push_state :comment
+      :BANG
+    end
+
+    rule /([^}}]*)/, :comment do |comment|
+      pop_state
+      [ :COMMENT, comment ]
+    end
+
     rule /([A-Za-z]\w+)/, :expression do |name|
       [ :IDENT, name ]
     end
