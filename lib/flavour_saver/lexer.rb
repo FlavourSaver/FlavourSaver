@@ -5,7 +5,7 @@ module FlavourSaver
 
     rule /{{/, :default do
       push_state :expression
-      [ :EXPRESSION_START ]
+      [ :EXPRESSIONSTART ]
     end
 
     rule /([A-Za-z]\w+)/, :expression do |name|
@@ -18,7 +18,7 @@ module FlavourSaver
 
     rule /}}/, :expression do
       pop_state
-      [ :EXPRESSION_END ]
+      [ :EXPRESSIONEND ]
     end
   end
 end

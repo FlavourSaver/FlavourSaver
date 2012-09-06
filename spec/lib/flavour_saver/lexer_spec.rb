@@ -10,12 +10,12 @@ describe FlavourSaver::Lexer do
       describe '{{foo}}' do
         subject { FlavourSaver::Lexer.lex "{{foo}}" }
 
-        it 'begins with an EXPRESSION_START' do
-          subject.first.type.should == :EXPRESSION_START
+        it 'begins with an EXPRESSIONSTART' do
+          subject.first.type.should == :EXPRESSIONSTART
         end
 
-        it 'ends with an EXPRESSION_END' do
-          subject[-2].type.should == :EXPRESSION_END
+        it 'ends with an EXPRESSIONEND' do
+          subject[-2].type.should == :EXPRESSIONEND
         end
 
         it 'contains only the identifier "foo"' do

@@ -16,7 +16,7 @@ module FlavourSaver
   class Parser < RLTK::Parser
 
     production(:expression) do
-      clause('EXPRESSION_START WHITESPACE? IDENTIFIER WHITESPACE? EXPRESSION_END') { |_,_,i,_,_| i }
+      clause('EXPRESSIONSTART WHITESPACE? IDENTIFIER WHITESPACE? EXPRESSIONEND') { |_,_,i,_,_| i }
     end
 
     finalize
