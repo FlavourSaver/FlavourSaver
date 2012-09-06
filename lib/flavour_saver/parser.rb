@@ -3,7 +3,11 @@ require 'rltk/ast'
 
 module FlavourSaver
   Node       = Class.new(RLTK::ASTNode)
-  class OutputNode < Node
+  class TemplateItemNode < Node; end
+  class TemplateNode < Node
+    child :items, [TemplateItemNode]
+  end
+  class OutputNode < TemplateItemNode
     value :value, String
   end
   class StringNode < Node
@@ -13,24 +17,76 @@ module FlavourSaver
     value :name, String
     value :arguments, Array
   end
+  class LiteralCallNode < CallNode; end
   class ParentCallNode < CallNode; end
-  class ExpressionNode < Node
+  class ExpressionNode < TemplateItemNode
     child :method, [CallNode]
-    child :block, [OutputNode]
+  end
+  class BlockExpressionNode < ExpressionNode
+    def name
+      method.first.name
+    end
+  end
+  class BlockCloseExpressionNode < BlockExpressionNode ; end
+  class BlockStartExpressionNode < BlockExpressionNode
+    child :stop, [BlockCloseExpressionNode]
+    def closed_by(node=nil)
+      self.stop = [node] if node
+      stop.first
+    end
   end
   class SafeExpressionNode < ExpressionNode ; end
-  class CommentNode < Node
+  class CommentNode < TemplateItemNode
     value :comment, String
   end
 
   class Parser < RLTK::Parser
 
+    class UnbalancedBlockError < StandardError; end
+
+    class Environment < RLTK::Parser::Environment
+      attr_accessor :blocks
+      
+      def initialize
+        self.blocks = []
+      end
+
+      def open_block(node)
+        self.blocks << node
+        node
+      end
+
+      def close_block(node)
+        block = blocks.select { |n| n.name == node.name }.last
+        if block
+          block.closed_by(node)
+          self.blocks.delete(block)
+        else
+          raise UnbalancedBlockError, "Unable to find matching block opening when evaluating \"/#{node.name}\"."
+        end
+        node
+      end
+
+      def after_parse
+        blocks.each do |node|
+          raise UnbalancedBlockError, "Unable to find a matching close expression for \"##{node.name}\"."
+        end
+      end
+    end
+
+    def self.parse(tokens, opts={})
+      opts = build_parse_opts(opts)
+      super(tokens,opts).tap do |r|
+        opts[:env].after_parse
+      end
+    end
+
     left :DOT
     right :EQ
 
     production(:template) do
-      clause('template_item') { |i| [i] }
-      clause('template template_item') { |t,i| t + [i] }
+      clause('template_item') { |i| TemplateNode.new([i]) }
+      clause('template template_item') { |t,i| t.items << i; t }
     end
 
     production(:template_item) do
@@ -43,18 +99,31 @@ module FlavourSaver
     end
 
     production(:expression) do
-      clause('expr_start expression_contents expr_end') { |e0,e1,_| e0.new(e1,[]) }
-      clause('expr_start BANG COMMENT expr_end') { |_,_,e,_| CommentNode.new(e) }
+      clause('expr')          { |e| ExpressionNode.new(e) }
+      clause('expr_comment')  { |e| CommentNode.new(e) }
+      clause('expr_safe')     { |e| SafeExpressionNode.new(e) }
+      clause('expr_bl_start') { |e| open_block BlockStartExpressionNode.new([e],[]) }
+      clause('expr_bl_end')   { |e| close_block BlockCloseExpressionNode.new([e]) }
     end
 
-    production(:expr_start) do
-      clause('EXPRST') { |_| ExpressionNode }
-      clause('TEXPRST') { |_| SafeExpressionNode }
+    production(:expr) do
+      clause('EXPRST expression_contents EXPRE') { |_,e,_| e }
     end
 
-    production(:expr_end) do
-      clause('EXPRE') { |_| }
-      clause('TEXPRE') { |_| }
+    production(:expr_comment) do
+      clause('EXPRST BANG COMMENT EXPRE') { |_,_,e,_| e }
+    end
+
+    production(:expr_safe) do
+      clause('TEXPRST expression_contents TEXPRE') { |_,e,_| e }
+    end
+
+    production(:expr_bl_start) do
+      clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| CallNode.new(e,[]) }
+    end
+
+    production(:expr_bl_end) do
+      clause('EXPRST FWSL WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| CallNode.new(e,[]) }
     end
 
     production(:expression_contents) do
@@ -92,7 +161,7 @@ module FlavourSaver
 
     production(:object) do
       clause('IDENT') { |e| CallNode.new(e, []) }
-      clause('LITERAL') { |e| CallNode.new(e, []) }
+      clause('LITERAL') { |e| LiteralCallNode.new(e, []) }
       clause('DOT DOT FWSL IDENT') { |_,_,_,e| ParentCallNode.new(e, []) }
       clause('DOT DOT FWSL LITERAL') { |_,_,_,e| ParentCallNode.new(e, []) }
     end
