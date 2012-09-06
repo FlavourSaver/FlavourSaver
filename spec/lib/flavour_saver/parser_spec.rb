@@ -10,7 +10,7 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{foo}}')) }
 
     it 'is an expression node' do
-      subject.first.should be_an(FlavourSaver::ExpressionNode)
+      subject.should == 'foo'
     end
   end
 
