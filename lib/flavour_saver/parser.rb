@@ -15,27 +15,9 @@ module FlavourSaver
 
   class Parser < RLTK::Parser
 
-    production(:template) do
-      clause('template_item') { |t| [t] }
-      clause('template_item template_item') { |t0,t1| t0 + t1 }
-    end
-
-    production(:template_item) do
-      clause('output') { |o| o }
-      clause('expression') { |e| e }
-    end
-
-    production(:output) do
-      clause('OUTPUT') { |o| OutputNode.new(o) }
-    end
-
     production(:expression) do
-      clause('EXPRESSION_START WHITESPACE? object WHITESPACE? EXPRESSION_END') do |_,_,i,_,_|
-        ExpressionNode.new(i, [])
-      end
+      clause('EXPRESSION_START WHITESPACE? IDENTIFIER WHITESPACE? EXPRESSION_END') { |_,_,i,_,_| i }
     end
-
-    nonempty_list(:object, [:IDENTIFIER, :LITERAL], :DOT)
 
     finalize
 
