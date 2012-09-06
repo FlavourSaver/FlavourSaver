@@ -42,6 +42,15 @@ describe FlavourSaver::Runtime do
         subject.evaluate_node(node)
       end
     end
+
+    describe 'when passed a CommentNode' do
+      let(:template) { "{{! I am a comment}}" }
+      let(:node)     { ast.items.select { |n| n.class == FlavourSaver::CommentNode }.first }
+
+      it 'should return zilch' do
+        subject.evaluate_node(node).should == ''
+      end
+    end
   end
 
   describe '#evaluate_expression' do
@@ -116,11 +125,4 @@ describe FlavourSaver::Runtime do
     end
   end
 
-  # describe 'hello world' do
-  #   let(:template) { "hello world" }
-
-  #   it 'returns "hello world"' do
-  #     subject.should == "hello world"
-  #   end
-  # end
 end

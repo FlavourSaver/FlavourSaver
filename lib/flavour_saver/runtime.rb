@@ -7,9 +7,10 @@ module FlavourSaver
       self.new(ast,context).to_s
     end
 
-    def initialize(ast, context)
+    def initialize(ast, context, parent=nil)
       @ast = ast
       @context = context
+      @parent = parent
     end
 
     def to_s
@@ -28,15 +29,21 @@ module FlavourSaver
         evaluate_expression(node)
       when CallNode
         evaluate_call(node)
+      when CommentNode
+        ''
       else
         raise UnknownNodeTypeException, "Don't know how to deal with a node of type #{node.class.to_s.inspect}."
       end
     end
 
+    def parent
+      raise UnknownContextException, "No parent context in which to evaluate the parentiness of the context"
+    end
+
     def evaluate_call(call, context=@context)
       case call
       when ParentCallNode
-        # how do I make a call stack, foo?
+        parent.evaluate_call(call,context)
       when LiteralCallNode
         context.send(:[], call.name)
       else
