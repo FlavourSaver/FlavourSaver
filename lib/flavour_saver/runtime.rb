@@ -1,3 +1,5 @@
+require 'cgi'
+
 module FlavourSaver
   UnknownNodeTypeException = Class.new(StandardError)
   UnknownContextException  = Class.new(StandardError)
@@ -25,10 +27,17 @@ module FlavourSaver
         node.value
       when StringNode
         node.value
+      when SafeExpressionNode
+        evaluate_expression(node).to_s
       when ExpressionNode
-        evaluate_expression(node)
+        CGI.escapeHTML(evaluate_expression(node).to_s)
       when CallNode
         evaluate_call(node)
+      when Hash
+        node.each do |key,value|
+          node[key] = evaluate_argument(value)
+        end
+        node
       when CommentNode
         ''
       else

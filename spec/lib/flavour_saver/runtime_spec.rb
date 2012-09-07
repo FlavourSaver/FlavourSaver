@@ -41,6 +41,21 @@ describe FlavourSaver::Runtime do
         subject.should_receive(:evaluate_expression).with(node)
         subject.evaluate_node(node)
       end
+
+      it 'should HTML escape the output' do
+        context.should_receive(:foo).and_return("<html>LOL</html>")
+        subject.evaluate_node(node).should == '&lt;html&gt;LOL&lt;/html&gt;'
+      end
+    end
+
+    describe 'when passed a SafeExpressionNode' do
+      let(:node)      { ast.items.select { |n| n.class == FlavourSaver::SafeExpressionNode }.first }
+      let (:template) { "{{{foo}}}" }
+
+      it 'should not HTML escape the output' do
+        context.should_receive(:foo).and_return("<html>LOL</html>")
+        subject.evaluate_node(node).should == '<html>LOL</html>'
+      end
     end
 
     describe 'when passed a CommentNode' do
@@ -123,6 +138,26 @@ describe FlavourSaver::Runtime do
         -> { subject.evaluate_expression(expr) }.should raise_error(FlavourSaver::UnknownContextException)
       end
     end
+
+    describe 'when called with a hash argument containing a string value' do
+      let (:template) { '{{foo bar="baz"}}' }
+
+      it 'receives the argument as a hash' do
+        context.should_receive(:foo).with({:bar => 'baz'})
+        subject.evaluate_expression(expr)
+      end
+    end
+
+    describe 'when called with a hash argument containing a method reference' do
+      let (:template) { "{{foo bar=baz}}" }
+
+      it 'calls the value and returns it\'s result in the hash' do
+        context.should_receive(:baz).and_return('OMGLOLWAT')
+        context.should_receive(:foo).with({:bar => 'OMGLOLWAT'})
+        subject.evaluate_expression(expr)
+      end
+    end
+
   end
 
 end
