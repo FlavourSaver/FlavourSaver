@@ -5,6 +5,7 @@ module FlavourSaver
   autoload :Lexer,   'flavour_saver/lexer'
   autoload :Parser,  'flavour_saver/parser'
   autoload :Runtime, 'flavour_saver/runtime'
+  autoload :Helpers, 'flavour_saver/helpers'
 
   module_function
 
@@ -16,6 +17,8 @@ module FlavourSaver
     Parser.parse(tokens)
   end
 
-  def evaluate
+  def evaluate(template,context)
+    context.extend(Helpers)
+    Runtime.run(parse(lex(template)), context)
   end
 end

@@ -6,7 +6,11 @@ module BasicSteps
   end
 
   step 'I evaluate the expression' do
-    FlavourSaver.evaluate(@expression, @context).should == 'WAT'
+    @result = FlavourSaver.evaluate(@expression, @context)
+  end
+
+  step 'I should see its result' do
+    @result.should == 'WAT'
   end
 end
 
