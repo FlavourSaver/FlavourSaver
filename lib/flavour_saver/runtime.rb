@@ -5,11 +5,13 @@ module FlavourSaver
   UnknownContextException  = Class.new(StandardError)
   class Runtime
 
+    attr_accessor :context
+
     def self.run(ast, context) 
       self.new(ast,context).to_s
     end
 
-    def initialize(ast, context, parent=nil)
+    def initialize(ast, context=nil, parent=nil)
       @ast = ast
       @context = context
       @parent = parent
@@ -19,10 +21,30 @@ module FlavourSaver
       evaluate_node(@ast)
     end
 
-    def evaluate_node(node)
+    def evaluate_node(node,block=[])
       case node
       when TemplateNode
-        node.items.map { |n| evaluate_node(n) }.join ''
+        result = ''
+        pos = 0
+        len = node.items.size
+        while(pos < len)
+          n = node.items[pos]
+          if n.is_a? BlockStartExpressionNode
+            blocknode = n
+            blockbody = []
+            pos += 1
+            while (blockbody.last != blocknode.closed_by)
+              n = node.items[pos]
+              blockbody << n
+              pos += 1
+            end
+            result << evaluate_block(blocknode, blockbody).to_s
+          else
+            result << evaluate_node(n).to_s
+            pos += 1
+          end
+        end
+        result
       when OutputNode
         node.value
       when StringNode
@@ -49,14 +71,14 @@ module FlavourSaver
       raise UnknownContextException, "No parent context in which to evaluate the parentiness of the context"
     end
 
-    def evaluate_call(call, context=@context)
+    def evaluate_call(call, context=@context, &block)
       case call
       when ParentCallNode
-        parent.evaluate_call(call,context)
+        parent.evaluate_call(call,context,&block)
       when LiteralCallNode
-        context.send(:[], call.name)
+        context.send(:[], call.name, &block)
       else
-        context.send(call.name, *call.arguments.map { |a| evaluate_argument(a) })
+        context.send(call.name, *call.arguments.map { |a| evaluate_argument(a) }, &block)
       end
     end
 
@@ -68,10 +90,25 @@ module FlavourSaver
       end
     end
 
-    def evaluate_expression(node,block=nil)
+    def evaluate_expression(node, &block)
       node.method.inject(@context) do |result,call|
-        result = evaluate_call(call, result)
+        result = evaluate_call(call, result, &block)
       end
+    end
+
+    def evaluate_block(node,body=[])
+      child = create_child_runtime(body)
+      block = proc do |context|
+        child.context = context
+        result = child.to_s
+        child.context = nil
+        result
+      end
+      evaluate_call(node.method.first, context, &block)
+    end
+
+    def create_child_runtime(body=[])
+      Runtime.new(TemplateNode.new(body),nil,self)
     end
 
   end

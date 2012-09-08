@@ -87,6 +87,7 @@ module FlavourSaver
     production(:template) do
       clause('template_item') { |i| TemplateNode.new([i]) }
       clause('template template_item') { |t,i| t.items << i; t }
+      clause('') { TemplateNode.new([]) }
     end
 
     production(:template_item) do

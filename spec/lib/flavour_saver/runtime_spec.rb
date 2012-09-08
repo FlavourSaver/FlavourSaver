@@ -1,6 +1,7 @@
 require 'flavour_saver'
 
 describe FlavourSaver::Runtime do
+  let(:template) { '' }
   let(:tokens)   { FlavourSaver.lex(template) }
   let(:ast)      { FlavourSaver.parse(tokens) }
   let(:context)  { stub(:context) }
@@ -64,6 +65,15 @@ describe FlavourSaver::Runtime do
 
       it 'should return zilch' do
         subject.evaluate_node(node).should == ''
+      end
+    end
+
+    describe 'when passed a BlockStartExpressionNode' do
+      let(:template) { "{{#foo}}bar{{/foo}}baz" }
+
+      it 'snatches up the block contents and skips them from evaluation' do
+        context.stub!(:foo).and_return('')
+        subject.evaluate_node(ast).should == 'baz'
       end
     end
   end
@@ -158,6 +168,29 @@ describe FlavourSaver::Runtime do
       end
     end
 
+  end
+
+  describe '#evaluate_block' do
+    let(:template) { "{{#foo}}hello world{{/foo}}" }
+    let(:block)    { ast.items.first }
+    let(:body)     { ast.items[1..1] }
+
+    it 'creates a new runtime' do
+      subject.should_receive(:create_child_runtime)
+      context.stub(:foo)
+      subject.evaluate_block(block, body)
+    end
+
+    it 'passes a block to the helper' do
+      context.stub(:foo).and_yield(nil)
+      subject.evaluate_block(block,body).should == 'hello world'
+    end
+  end
+
+  describe '#create_child_runtime' do
+    it 'creates a new runtime' do
+      subject.create_child_runtime([]).should be_a(FlavourSaver::Runtime)
+    end
   end
 
 end

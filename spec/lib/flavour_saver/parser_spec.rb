@@ -233,4 +233,12 @@ describe FlavourSaver::Parser do
     end
   end
 
+  describe '' do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('')) }
+
+    it 'returns an empty template' do
+      subject.items.should be_empty
+    end
+  end
+
 end
