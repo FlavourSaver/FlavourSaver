@@ -18,7 +18,11 @@ module FlavourSaver
     value :arguments, Array
   end
   class LiteralCallNode < CallNode; end
-  class ParentCallNode < CallNode; end
+  class ParentCallNode < CallNode
+    def to_callnode
+      CallNode.new(name,arguments)
+    end
+  end
   class ExpressionNode < TemplateItemNode
     child :method, [CallNode]
   end

@@ -5,16 +5,16 @@ module FlavourSaver
   UnknownContextException  = Class.new(StandardError)
   class Runtime
 
-    attr_accessor :context
+    attr_accessor :context, :parent
 
     def self.run(ast, context) 
       self.new(ast,context).to_s
     end
 
-    def initialize(ast, context=nil, parent=nil)
+    def initialize(ast, context=nil)
       @ast = ast
+      context.extend(Helpers) unless context.is_a? Helpers
       @context = context
-      @parent = parent
     end
 
     def to_s
@@ -23,6 +23,8 @@ module FlavourSaver
 
     def evaluate_node(node,block=[])
       case node
+      when BlockCloseExpressionNode
+        ''
       when TemplateNode
         result = ''
         pos = 0
@@ -33,7 +35,7 @@ module FlavourSaver
             blocknode = n
             blockbody = []
             pos += 1
-            while (blockbody.last != blocknode.closed_by)
+            while (node.items[pos] != blocknode.closed_by)
               n = node.items[pos]
               blockbody << n
               pos += 1
@@ -68,13 +70,14 @@ module FlavourSaver
     end
 
     def parent
-      raise UnknownContextException, "No parent context in which to evaluate the parentiness of the context"
+      raise UnknownContextException, "No parent context in which to evaluate the parentiness of the context" unless @parent
+      @parent
     end
 
     def evaluate_call(call, context=@context, &block)
       case call
       when ParentCallNode
-        parent.evaluate_call(call,context,&block)
+        parent.evaluate_call(call.to_callnode,&block)
       when LiteralCallNode
         context.send(:[], call.name, &block)
       else
@@ -106,12 +109,15 @@ module FlavourSaver
         result
       end
       call = node.method.first
-      puts "Sending call for eval: #{call.name}(#{call.arguments.inspect})"
       evaluate_call(call, context, &block)
     end
 
     def create_child_runtime(body=[])
-      Runtime.new(TemplateNode.new(body),nil,self)
+      Runtime.new(TemplateNode.new(body)).tap { |r| r.parent = self }
+    end
+
+    def inspect
+      "#<FlavourSaver::Runtime contents=#{@ast.inspect}>"
     end
 
   end

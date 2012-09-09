@@ -4,12 +4,11 @@ require 'flavour_saver'
 describe do
   subject { Tilt.new(template).render(context) }
   let(:template) { File.expand_path('../../fixtures/backtrack.hbs', __FILE__) }
-  let(:context)  { stub(:context) }
 
   it 'renders correctly' do
-    person = stub(:person)
-    context.should_receive(:person).and_return(person)
-    person.should_receive(:name).and_return('Alan')
-    subject.should == "hello world\n"
+    person = Struct.new(:name).new('Alan')
+    company = Struct.new(:name).new('Rad, Inc.')
+    context = Struct.new(:person,:company).new(person, company)
+    Tilt.new(template).render(context).should == "\n  Alan\n  Rad, Inc.\n\n"
   end
 end

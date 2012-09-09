@@ -20,6 +20,10 @@ describe FlavourSaver::Helpers do
       expect { |b| subject.if(true, &b) }.to yield_control
     end
 
+    it "doesn't yield if it's argument is falsy" do
+      expect { |b| subject.if(false, &b) }.not_to yield_control
+    end
+
     it 'handles else'
   end
 
