@@ -34,4 +34,10 @@ describe FlavourSaver::Helpers do
     end
   end
 
+  describe "#this" do
+    it 'returns self' do
+      subject.this.should == subject
+    end
+  end
+
 end

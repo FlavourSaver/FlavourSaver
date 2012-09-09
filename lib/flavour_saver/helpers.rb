@@ -18,5 +18,9 @@ module FlavourSaver
     def unless(falsy, &block)
       self.if(!falsy,&block)
     end
+
+    def this
+      self
+    end
   end
 end
