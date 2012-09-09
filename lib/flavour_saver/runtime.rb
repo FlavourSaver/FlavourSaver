@@ -84,16 +84,17 @@ module FlavourSaver
 
     def evaluate_argument(arg)
       if arg.is_a? Array
-        arg.map{ |a| evaluate_node(a) }.join ''
+        arg.map{ |a| evaluate_node(a) }.first
       else
         evaluate_node(arg)
       end
     end
 
     def evaluate_expression(node, &block)
-      node.method.inject(@context) do |result,call|
+      r = node.method.inject(@context) do |result,call|
         result = evaluate_call(call, result, &block)
       end
+      r.respond_to?(:join) ? r.join('') : r
     end
 
     def evaluate_block(node,body=[])
@@ -104,7 +105,9 @@ module FlavourSaver
         child.context = nil
         result
       end
-      evaluate_call(node.method.first, context, &block)
+      call = node.method.first
+      puts "Sending call for eval: #{call.name}(#{call.arguments.inspect})"
+      evaluate_call(call, context, &block)
     end
 
     def create_child_runtime(body=[])

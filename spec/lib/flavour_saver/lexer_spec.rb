@@ -125,6 +125,14 @@ describe FlavourSaver::Lexer do
       end
     end
 
+    describe 'Carriage-return and new-lines' do
+      subject { FlavourSaver::Lexer.lex "{{foo}}\n{{bar}}\r{{baz}}" }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [:EXPRST,:IDENT,:EXPRE,:OUT,:EXPRST,:IDENT,:EXPRE,:OUT,:EXPRST,:IDENT,:EXPRE,:EOS]
+      end
+    end
+
     describe 'Block Expressions' do
       subject { FlavourSaver::Lexer.lex "{{#foo}}{{bar}}{{/foo}}" }
 
@@ -142,7 +150,22 @@ describe FlavourSaver::Lexer do
           subject.map(&:value).compact.should == [ 'foo', 'bar', 'foo' ]
         end
       end
+    end
 
+    describe 'Carriage return' do
+      subject { FlavourSaver::Lexer.lex "\r" }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [:OUT,:EOS]
+      end
+    end
+
+    describe 'New line' do
+      subject { FlavourSaver::Lexer.lex "\n" }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [:OUT,:EOS]
+      end
     end
   end
 end

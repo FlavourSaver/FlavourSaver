@@ -225,11 +225,27 @@ describe FlavourSaver::Parser do
     end
   end
 
+  describe "{{foo}}\n" do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{foo}}\n")) }
+
+    it 'has a block start and end' do
+      subject.items.map(&:class).should == [ FlavourSaver::ExpressionNode, FlavourSaver::OutputNode ]
+    end
+  end
+
   describe '{{#foo}}{{#bar}}{{/foo}}' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}{{#bar}}{{/foo}}')) }
 
     it 'raises UnbalancedBlockError for "#bar"' do
       -> { subject }.should raise_error(FlavourSaver::Parser::UnbalancedBlockError, /#bar/)
+    end
+  end
+
+  describe "{{#foo}}\n{{/foo}}" do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{#foo}}\n{{/foo}}")) }
+
+    it "doesn't throw a NotInLanguage exception" do
+      -> { subject }.should_not raise_error(RLTK::NotInLanguage)
     end
   end
 

@@ -2,6 +2,7 @@ module FlavourSaver
   module Helpers
 
     def with(argument) 
+      puts "#with received argument #{argument.inspect}"
       yield argument
     end
 

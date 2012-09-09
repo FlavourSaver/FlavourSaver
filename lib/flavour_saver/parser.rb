@@ -121,6 +121,7 @@ module FlavourSaver
 
     production(:expr_bl_start) do
       clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| CallNode.new(e,[]) }
+      clause('EXPRST HASH WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| CallNode.new(e,a) }
     end
 
     production(:expr_bl_end) do

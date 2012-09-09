@@ -1,11 +1,13 @@
 require "flavour_saver/version"
+require 'tilt'
 
 module FlavourSaver
 
-  autoload :Lexer,   'flavour_saver/lexer'
-  autoload :Parser,  'flavour_saver/parser'
-  autoload :Runtime, 'flavour_saver/runtime'
-  autoload :Helpers, 'flavour_saver/helpers'
+  autoload :Lexer,    'flavour_saver/lexer'
+  autoload :Parser,   'flavour_saver/parser'
+  autoload :Runtime,  'flavour_saver/runtime'
+  autoload :Helpers,  'flavour_saver/helpers'
+  autoload :Template, 'flavour_saver/template'
 
   module_function
 
@@ -21,4 +23,6 @@ module FlavourSaver
     context.extend(Helpers)
     Runtime.run(parse(lex(template)), context)
   end
+
+  Tilt.register(Template, 'handlebars', 'hbs')
 end
