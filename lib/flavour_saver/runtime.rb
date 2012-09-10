@@ -7,13 +7,14 @@ module FlavourSaver
 
     attr_accessor :context, :parent
 
-    def self.run(ast, context) 
-      self.new(ast,context).to_s
+    def self.run(ast, context, locals, helpers=[])
+      self.new(ast, context, locals, helpers).to_s
     end
 
-    def initialize(ast, context=nil)
+    def initialize(ast, context=nil, locals={}, helpers=[])
       @ast = ast
-      context.extend(Helpers) unless context.is_a? Helpers
+      @locals = locals
+      @helpers = helpers
       @context = context
     end
 
@@ -74,7 +75,8 @@ module FlavourSaver
       @parent
     end
 
-    def evaluate_call(call, context=@context, &block)
+    def evaluate_call(call, context=context, &block)
+      context = Helpers.decorate_with(context,@helpers,@locals)
       case call
       when ParentCallNode
         parent.evaluate_call(call.to_callnode,&block)
@@ -94,7 +96,7 @@ module FlavourSaver
     end
 
     def evaluate_expression(node, &block)
-      r = node.method.inject(@context) do |result,call|
+      r = node.method.inject(context) do |result,call|
         result = evaluate_call(call, result, &block)
       end
       r.respond_to?(:join) ? r.join('') : r
@@ -113,7 +115,7 @@ module FlavourSaver
     end
 
     def create_child_runtime(body=[])
-      Runtime.new(TemplateNode.new(body)).tap { |r| r.parent = self }
+      Runtime.new(TemplateNode.new(body),nil,@locals,@helpers).tap { |r| r.parent = self }
     end
 
     def inspect

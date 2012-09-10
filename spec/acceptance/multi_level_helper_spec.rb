@@ -3,7 +3,7 @@ require 'flavour_saver'
 
 describe do
   subject { Tilt.new(template).render(context) }
-  let(:template) { File.expand_path('../../fixtures/backtrack.hbs', __FILE__) }
+  let(:template) { File.expand_path('../../fixtures/multi_level_helper.hbs', __FILE__) }
 
   it 'renders correctly when person has a name' do
     person = Struct.new(:name).new('Alan')

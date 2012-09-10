@@ -12,17 +12,7 @@ module FlavourSaver
     end
 
     def evaluate(scope=Object.new,locals={},&block)
-      # Include standard helper methods
-      scope.extend Helpers
-
-      # Include local variables
-      scope.extend Module.new do 
-        locals.each do |k,v|
-          define_method k.to_sym { v }
-        end
-      end
-
-      Runtime.run(@ast,scope)
+      Runtime.run(@ast,scope,locals)
     end
   end
 
