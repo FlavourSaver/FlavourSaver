@@ -1,5 +1,4 @@
 require 'cgi'
-require 'fail_bowl'
 
 module FlavourSaver
   UnknownNodeTypeException         = Class.new(StandardError)
