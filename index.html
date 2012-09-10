@@ -1,0 +1,210 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Flavoursaver by jamesotron</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Flavoursaver</h1>
+        <p>Pure-ruby Handlebars parser based on RLTK.</p>
+        <p class="view"><a href="https://github.com/jamesotron/FlavourSaver">View the Project on GitHub <small>jamesotron/FlavourSaver</small></a></p>
+        <ul>
+          <li><a href="https://github.com/jamesotron/FlavourSaver/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/jamesotron/FlavourSaver/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/jamesotron/FlavourSaver">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>FlavourSaver</h1>
+
+<p>FlavourSaver is a pure-ruby implimentation of the <a href="http://handlebarsjs.com">Handlebars</a>
+templating language.</p>
+
+<h2>License</h2>
+
+<p>FlavourSaver is Copyright (c) 2012 Sociable Limited and licensed under the terms
+of the MIT Public License (see the LICENSE file included with this distribution
+for more details).</p>
+
+<h2>Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<pre><code>gem 'flavour_saver'
+</code></pre>
+
+<p>And then execute:</p>
+
+<pre><code>$ bundle
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre><code>$ gem install flavour_saver
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>FlavourSaver provides an interface to the amazing
+<a href="https://github.com/rtomayko/tilt">Tilt</a> templating library, meaning that it
+should work with anything that has Tilt support (Sinatra, Rails, etc)</p>
+
+<h2>Status</h2>
+
+<p>FlavourSaver is in it's infancy, your pull requests are greatly appreciated.</p>
+
+<p>Currently supported:</p>
+
+<ul>
+<li>Expressions:
+
+<ul>
+<li>with object-paths (<code>{{some.method.chain}}</code>)</li>
+<li>containing object-literals (<code>{{object.['index'].method}}</code>):
+Ruby's <code>:[](index)</code> method is called for literals, making FlavourSaver
+compatible with <code>Hash</code> and hashlike objects.</li>
+<li>with list arguments (<code>{{method arg1 "arg2"}}</code>)</li>
+<li>with hash arguments (<code>{{method foo=bar bar="baz"}}</code>)</li>
+<li>with list and hash arguments (<code>{{method arg1 arg2 foo=bar bar="baz"}}</code>)
+provided that the hash is the last argument.</li>
+<li>Comments (<code>{{! a comment}}</code>)</li>
+<li>Expression output is HTML escaped</li>
+</ul>
+</li>
+<li>Safe expressions
+
+<ul>
+<li>Expressions wrapped in triple-stashes are not HTML escaped (<code>{{{an expression}}}</code>)</li>
+</ul>
+</li>
+<li>Block expressions
+
+<ul>
+<li>Simple API for adding block helpers.</li>
+</ul>
+</li>
+</ul><p>Coming soon:</p>
+
+<ul>
+<li>Partials</li>
+</ul><h2>Helpers</h2>
+
+<p>FlavourSaver implements the following helpers by default:</p>
+
+<h3>#with</h3>
+
+<p>Yields it's argument into the context of the block contents:</p>
+
+<pre lang="handlebars"><code>{{#with person}}
+  {{name}}
+{{/with}}
+</code></pre>
+
+<h3>#each</h3>
+
+<p>Takes a single collection argument and yeilds the block's contents once 
+for each member of the collection:</p>
+
+<pre lang="handlebars"><code>{{#each people}}
+  {{name}}
+{{/each}}
+</code></pre>
+
+<h3>#if</h3>
+
+<p>Takes a single argument and yields the contents of the block if that argument
+is truthy.</p>
+
+<pre lang="handlebars"><code>{{#if person}}
+  Hi {{person.name}}!
+{{/if}}
+</code></pre>
+
+<p>It can also handle a special case <code>{{else}}</code> expression:</p>
+
+<pre lang="handlebars"><code>{{#if person}}
+  Hi {{person.name}}!
+{{else}}
+  Nobody to say hi to.
+{{/if}}
+</code></pre>
+
+<h3>#unless</h3>
+
+<p>Exactly the same is <code>#if</code> but backwards.</p>
+
+<h3>this</h3>
+
+<p>In JavaScript this is a native keyword, in Ruby not-so-much. FlavourSaver's <code>this</code> helper
+returns <code>self</code>:</p>
+
+<pre lang="handlebars"><code>{{#each names}}
+  {{this}}
+{{/each}}
+</code></pre>
+
+<h3>Adding additional helpers</h3>
+
+<p>Additional helpers can easy be added by calling <code>FS.register_helper</code>, eg:</p>
+
+<div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:people</span><span class="p">)</span> <span class="k">do</span>
+  <span class="o">[</span>
+    <span class="p">{</span> <span class="n">firstName</span><span class="p">:</span> <span class="s1">'Yehuda'</span><span class="p">,</span> <span class="n">lastName</span><span class="p">:</span> <span class="s1">'Katz'</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="n">firstName</span><span class="p">:</span> <span class="s1">'Carl'</span><span class="p">,</span> <span class="n">lastName</span><span class="p">:</span> <span class="s1">'Lerche'</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="n">firstName</span><span class="p">:</span> <span class="s1">'Alan'</span><span class="p">,</span> <span class="n">lastName</span><span class="p">:</span> <span class="s1">'Johnson'</span> <span class="p">},</span>
+  <span class="o">]</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Block helpers can simply yield from the blocks body:</p>
+
+<div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:list</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">people</span><span class="o">|</span>
+  <span class="s2">"&lt;ul&gt;</span><span class="se">\n</span><span class="s2">  &lt;li&gt;</span><span class="si">#{</span><span class="n">people</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"&lt;/li&gt;</span><span class="se">\n</span><span class="s2">  &lt;li&gt;"")}&lt;/li&gt;</span><span class="se">\n</span><span class="s2">&lt;/ul&gt;"</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>So rendering the following template:</p>
+
+<pre lang="handlebars"><code>{{#list people}}{{firstName}} {{lastName}}{{/list}}
+</code></pre>
+
+<p>Would output:</p>
+
+<div class="highlight"><pre><span class="nt">&lt;ul&gt;</span>
+  <span class="nt">&lt;li&gt;</span>Yehuda Katz<span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;li&gt;</span>Carl Lerge<span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;li&gt;</span>Alan Johnson<span class="nt">&lt;/li&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+</pre></div>
+
+<h2>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/jamesotron">jamesotron</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
