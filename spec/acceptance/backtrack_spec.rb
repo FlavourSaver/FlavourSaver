@@ -1,7 +1,7 @@
 require 'tilt'
 require 'flavour_saver'
 
-describe do
+describe 'Fixture: backtrack.hbs' do
   subject { Tilt.new(template).render(context) }
   let(:template) { File.expand_path('../../fixtures/backtrack.hbs', __FILE__) }
 

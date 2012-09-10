@@ -63,6 +63,14 @@ describe FlavourSaver::Lexer do
       end
     end
 
+    describe '{{else}}' do
+      subject { FlavourSaver::Lexer.lex '{{else}}' }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [ :EXPRST, :ELSE, :EXPRE, :EOS ]
+      end
+    end
+
     describe 'Object path expressions' do
       describe '{{foo.bar}}' do
         subject { FlavourSaver::Lexer.lex "{{foo.bar}}" }

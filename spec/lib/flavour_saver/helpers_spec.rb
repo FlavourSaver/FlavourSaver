@@ -40,17 +40,17 @@ describe FlavourSaver::Helpers do
       end
     end
 
-    describe '#if' do
-      it "yields if it's argument is truthy" do
-        expect { |b| subject.if(true, &b) }.to yield_control
-      end
+    # describe '#if' do
+    #   it "yields if it's argument is truthy" do
+    #     expect { |b| subject.if(true, &b) }.to yield_control
+    #   end
 
-      it "doesn't yield if it's argument is falsy" do
-        expect { |b| subject.if(false, &b) }.not_to yield_control
-      end
+    #   it "doesn't yield if it's argument is falsy" do
+    #     expect { |b| subject.if(false, &b) }.not_to yield_control
+    #   end
 
-      it 'handles else'
-    end
+    #   it 'handles else'
+    # end
 
     describe '#unless' do
       it "calls #if with it's argument negated" do

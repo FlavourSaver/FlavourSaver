@@ -1,49 +1,8 @@
 require 'rltk'
 require 'rltk/ast'
+require 'flavour_saver/nodes'
 
 module FlavourSaver
-  Node       = Class.new(RLTK::ASTNode)
-  class TemplateItemNode < Node; end
-  class TemplateNode < Node
-    child :items, [TemplateItemNode]
-  end
-  class OutputNode < TemplateItemNode
-    value :value, String
-  end
-  class StringNode < Node
-    value :value, String
-  end
-  class CallNode < Node
-    value :name, String
-    value :arguments, Array
-  end
-  class LiteralCallNode < CallNode; end
-  class ParentCallNode < CallNode
-    def to_callnode
-      CallNode.new(name,arguments)
-    end
-  end
-  class ExpressionNode < TemplateItemNode
-    child :method, [CallNode]
-  end
-  class BlockExpressionNode < ExpressionNode
-    def name
-      method.first.name
-    end
-  end
-  class BlockCloseExpressionNode < BlockExpressionNode ; end
-  class BlockStartExpressionNode < BlockExpressionNode
-    child :stop, [BlockCloseExpressionNode]
-    def closed_by(node=nil)
-      self.stop = [node] if node
-      stop.first
-    end
-  end
-  class SafeExpressionNode < ExpressionNode ; end
-  class CommentNode < TemplateItemNode
-    value :comment, String
-  end
-
   class Parser < RLTK::Parser
 
     class UnbalancedBlockError < StandardError; end
@@ -109,6 +68,11 @@ module FlavourSaver
       clause('expr_safe')     { |e| SafeExpressionNode.new(e) }
       clause('expr_bl_start') { |e| open_block BlockStartExpressionNode.new([e],[]) }
       clause('expr_bl_end')   { |e| close_block BlockCloseExpressionNode.new([e]) }
+      clause('expr_else')     { |_| InverseNode.new }
+    end
+
+    production(:expr_else) do
+      clause('EXPRST ELSE EXPRE') { |_,_,_| }
     end
 
     production(:expr) do

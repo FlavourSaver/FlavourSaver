@@ -1,7 +1,7 @@
 require 'tilt'
 require 'flavour_saver'
 
-describe do
+describe 'Fixture: simple_expression.hbs' do
   subject { Tilt.new(template).render(context) }
   let(:template) { File.expand_path('../../fixtures/simple_expression.hbs', __FILE__) }
   let(:context)  { stub(:context) }

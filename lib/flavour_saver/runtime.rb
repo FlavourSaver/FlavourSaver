@@ -1,8 +1,10 @@
 require 'cgi'
+require 'fail_bowl'
 
 module FlavourSaver
-  UnknownNodeTypeException = Class.new(StandardError)
-  UnknownContextException  = Class.new(StandardError)
+  UnknownNodeTypeException         = Class.new(StandardError)
+  UnknownContextException          = Class.new(StandardError)
+  InappropriateUseOfElseException  = Class.new(StandardError)
   class Runtime
 
     attr_accessor :context, :parent
@@ -103,15 +105,45 @@ module FlavourSaver
     end
 
     def evaluate_block(node,body=[])
-      child = create_child_runtime(body)
-      block = proc do |context|
-        child.context = context
-        result = child.to_s
-        child.context = nil
-        result
-      end
       call = node.method.first
-      evaluate_call(call, context, &block)
+      if call.name == 'if'
+        # I JUST LOVE SPECIAL CASES THANKS WYCATS!!
+        true_body, false_body = chunk_block_body(body)
+        true_runtime = create_child_runtime(true_body)
+        false_runtime = create_child_runtime(false_body)
+        block = proc do |truthy|
+          child = truthy ? true_runtime : false_runtime
+          child.context = context
+          result = child.to_s
+          child.context = nil
+          result
+        end
+      else
+        child = create_child_runtime(body)
+        block = proc do |context|
+          child.context = context
+          result = child.to_s
+          child.context = nil
+          result
+        end
+      end
+        evaluate_call(call, context, &block)
+    end
+
+    def chunk_block_body(body)
+      yes_body = []
+      no_body  = []
+      inverse_seen = false
+      body.each do |node|
+        if node.is_a? InverseNode
+          inverse_seen = true
+        elsif inverse_seen
+          no_body << node
+        else
+          yes_body << node
+        end
+      end
+      [yes_body, no_body]
     end
 
     def create_child_runtime(body=[])

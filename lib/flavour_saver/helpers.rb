@@ -4,6 +4,7 @@ module FlavourSaver
   module Helpers
     class Defaults
       def with(args)
+        puts "with(#{args.inspect})"
         yield args
       end
 
@@ -14,7 +15,8 @@ module FlavourSaver
       end
 
       def if(truthy)
-        yield if truthy
+        # this is deep voodoo magic handled by the runtime.
+        yield truthy
       end
 
       def unless(falsy,&b)

@@ -31,6 +31,10 @@ module FlavourSaver
       [ :COMMENT, comment ]
     end
 
+    rule /else/, :expression do
+      :ELSE
+    end
+
     rule /([A-Za-z]\w+)/, :expression do |name|
       [ :IDENT, name ]
     end
