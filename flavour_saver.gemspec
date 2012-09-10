@@ -4,8 +4,8 @@ require File.expand_path('../lib/flavour_saver/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["James Harton"]
   gem.email         = ["jamesotron@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{FlavourSaver is a pure-ruby implimentation of the Handlebars templating language}
+  gem.summary       = %q{Handlebars.js without the .js}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)
