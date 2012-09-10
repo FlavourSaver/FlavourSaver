@@ -120,7 +120,7 @@ returns `self`:
 Additional helpers can easy be added by calling `FS.register_helper`, eg:
 
 ```ruby
-FW.register_helper(:people) do
+FS.register_helper(:people) do
   [
     { firstName: 'Yehuda', lastName: 'Katz' },
     { firstName: 'Carl', lastName: 'Lerche' },
@@ -132,7 +132,7 @@ end
 Block helpers can simply yield from the blocks body:
 
 ```ruby
-FW.register_helper(:list) do |people|
+FS.register_helper(:list) do |people|
   "<ul>\n  <li>#{people.join("</li>\n  <li>"")}</li>\n</ul>"
 end
 ```
