@@ -9,7 +9,7 @@ describe do
     person = Struct.new(:name).new('Alan')
     company = Struct.new(:name).new('Rad, Inc.')
     context = Struct.new(:person,:company).new(person, company)
-    Tilt.new(template).render(context).should == "\n  Alan\n  Rad, Inc.\n\n"
+    Tilt.new(template).render(context).should == "\n  \n    \n  \n  Rad, Inc.\n\n"
   end
 
   it 'renders correctly when person has no name' do
