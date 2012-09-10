@@ -24,5 +24,11 @@ module FlavourSaver
     Runtime.run(parse(lex(template)), context)
   end
 
+  def register_partial(*args,&b)
+    Helpers.register_partial(*args,&b)
+  end
+
   Tilt.register(Template, 'handlebars', 'hbs')
 end
+
+FS = FlavourSaver
