@@ -1,6 +1,11 @@
 {{#with person}}
   {{#with name}}
-    {{this}} - 
+    {{this}}
   {{/with}}
-  {{../company.name}}
+{{/with}}
+{{#with company}}
+  -
+  {{#with name}}
+    {{this}}
+  {{/with}}
 {{/with}}

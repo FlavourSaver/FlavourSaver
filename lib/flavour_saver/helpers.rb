@@ -4,7 +4,6 @@ module FlavourSaver
   module Helpers
     class Defaults
       def with(args)
-        puts "with(#{args.inspect})"
         yield args
       end
 

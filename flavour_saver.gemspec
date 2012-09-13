@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["jamesotron@gmail.com"]
   gem.description   = %q{FlavourSaver is a pure-ruby implimentation of the Handlebars templating language}
   gem.summary       = %q{Handlebars.js without the .js}
-  gem.homepage      = ""
+  gem.homepage      = "http://jamesotron.github.com/FlavourSaver/"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

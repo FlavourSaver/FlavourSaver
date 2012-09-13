@@ -3,7 +3,12 @@ require 'rltk/ast'
 require 'flavour_saver/nodes'
 
 module FlavourSaver
-  Node       = Class.new(RLTK::ASTNode)
+  class Node < RLTK::ASTNode
+    def inspect
+      to_s.inspect
+    end
+  end
+
   class TemplateItemNode < Node; end
 
   class TemplateNode < Node
@@ -35,6 +40,7 @@ module FlavourSaver
     value :arguments, Array
 
     def arguments_to_str(str='')
+      str = str.dup # RLTK magic?
       arguments.each do |arg|
         str << ' '
         if arg.respond_to? :join
@@ -76,26 +82,42 @@ module FlavourSaver
   end
 
   class BlockExpressionNode < ExpressionNode
+    child :sibling, [BlockExpressionNode]
+
     def name
       method.first.name
     end
   end
 
-  class BlockCloseExpressionNode < BlockExpressionNode 
+  class BlockExpressionCloseNode < BlockExpressionNode 
+
+    def opened_by=(node)
+      self.sibling = [node]
+      node
+    end
+
+    def opened_by
+      sibling.first
+    end
+
     def to_s
-      "{{/#{name}}}"
+      "{{/#{name}##{object_id}}}"
     end
   end
 
-  class BlockStartExpressionNode < BlockExpressionNode
-    child :stop, [BlockCloseExpressionNode]
-    def closed_by(node=nil)
-      self.stop = [node] if node
-      stop.first
+  class BlockExpressionStartNode < BlockExpressionNode
+
+    def closed_by=(node)
+      self.sibling=[node]
+      node
+    end
+
+    def closed_by
+      sibling.first
     end
 
     def to_s
-      "{{##{method.map(&:to_s).join '.'}}}"
+      "{{##{method.map(&:to_s).join ''}##{object_id}}}"
     end
   end
 

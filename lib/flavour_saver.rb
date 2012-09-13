@@ -3,11 +3,12 @@ require 'tilt'
 
 module FlavourSaver
 
-  autoload :Lexer,    'flavour_saver/lexer'
-  autoload :Parser,   'flavour_saver/parser'
-  autoload :Runtime,  'flavour_saver/runtime'
-  autoload :Helpers,  'flavour_saver/helpers'
-  autoload :Template, 'flavour_saver/template'
+  autoload :Lexer,          'flavour_saver/lexer'
+  autoload :Parser,         'flavour_saver/parser'
+  autoload :Runtime,        'flavour_saver/runtime'
+  autoload :Helpers,        'flavour_saver/helpers'
+  autoload :Template,       'flavour_saver/template'
+  autoload :NodeCollection, 'flavour_saver/node_collection'
 
   module_function
 

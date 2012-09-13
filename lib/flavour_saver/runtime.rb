@@ -25,30 +25,34 @@ module FlavourSaver
 
     def evaluate_node(node,block=[])
       case node
-      when BlockCloseExpressionNode
+      when BlockExpressionCloseNode
         ''
       when TemplateNode
-        result = ''
-        pos = 0
-        len = node.items.size
-        while(pos < len)
-          n = node.items[pos]
-          if n.is_a? BlockStartExpressionNode
-            blocknode = n
-            blockbody = []
-            pos += 1
-            while (node.items[pos] != blocknode.closed_by)
-              n = node.items[pos]
-              blockbody << n
-              pos += 1
-            end
-            result << evaluate_block(blocknode, blockbody).to_s
-          else
-            result << evaluate_node(n).to_s
-            pos += 1
-          end
-        end
-        result
+        deblock_nodes(*node.items).join ''
+        # result = ''
+        # pos = 0
+        # len = node.items.size
+        # while(pos < len)
+        #   n = node.items[pos]
+        #   puts "deblocking node #{node.to_s}"
+        #   puts "node.arguments = #{node.arguments}" if node.respond_to? :arguments
+        #   if n.is_a? BlockExpressionStartNode
+        #     blocknode = n
+        #     blockbody = []
+        #     pos += 1
+        #     while (node.items[pos] != blocknode.closed_by)
+        #       n = node.items[pos]
+        #       blockbody << n
+        #       pos += 1
+        #     end
+        #     result << evaluate_block(blocknode, blockbody).to_s
+        #   else
+        #     result << evaluate_node(n).to_s
+        #     pos += 1
+        #   end
+        # end
+        # puts "Result of deblocking: #{result}"
+        # result
       when OutputNode
         node.value
       when StringNode
@@ -147,6 +151,14 @@ module FlavourSaver
 
     def create_child_runtime(body=[])
       Runtime.new(TemplateNode.new(body),nil,@locals,@helpers).tap { |r| r.parent = self }
+    end
+
+    def deblock_nodes(*nodes)
+      # Curse me! I can't think of a nice Enumerable way to do this!
+      puts "incoming nodes: #{nodes.inspect}"
+      result = NodeCollection.new(nodes).to_a
+      puts "result: #{result.map(&:to_s).inspect}"
+      result
     end
 
     def inspect

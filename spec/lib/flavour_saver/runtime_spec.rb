@@ -68,7 +68,7 @@ describe FlavourSaver::Runtime do
       end
     end
 
-    describe 'when passed a BlockStartExpressionNode' do
+    describe 'when passed a BlockExpressionStartNode' do
       let(:template) { "{{#foo}}bar{{/foo}}baz" }
 
       it 'snatches up the block contents and skips them from evaluation' do

@@ -8,30 +8,35 @@ module FlavourSaver
     class UnbalancedBlockError < StandardError; end
 
     class Environment < RLTK::Parser::Environment
-      attr_accessor :blocks
+      attr_accessor :block_stack
       
       def initialize
-        self.blocks = []
+        self.block_stack = []
       end
 
-      def open_block(node)
-        self.blocks << node
+      def push_block(node)
+        unless block_stack.member? node # not really sure why this is necessary.
+          self.block_stack << node
+          puts "+ stack: #{block_stack.inspect}"
+        end
         node
       end
 
-      def close_block(node)
-        block = blocks.select { |n| n.name == node.name }.last
-        if block
-          block.closed_by(node)
-          self.blocks.delete(block)
-        else
-          raise UnbalancedBlockError, "Unable to find matching block opening when evaluating \"/#{node.name}\"."
+      def pop_block(node)
+        puts "looking for matching node for #{node}"
+        sibling = block_stack.select { |n| n.name == node.name }.last
+        if sibling
+          "found #{sibling.inspect} for #{node.inspect}"
+          node.opened_by    = sibling
+          sibling.closed_by = node
+          block_stack.delete(sibling)
+          puts "- stack: #{block_stack.inspect}"
         end
         node
       end
 
       def after_parse
-        blocks.each do |node|
+        block_stack.each do |node|
           raise UnbalancedBlockError, "Unable to find a matching close expression for \"##{node.name}\"."
         end
       end
@@ -66,8 +71,8 @@ module FlavourSaver
       clause('expr')          { |e| ExpressionNode.new(e) }
       clause('expr_comment')  { |e| CommentNode.new(e) }
       clause('expr_safe')     { |e| SafeExpressionNode.new(e) }
-      clause('expr_bl_start') { |e| open_block BlockStartExpressionNode.new([e],[]) }
-      clause('expr_bl_end')   { |e| close_block BlockCloseExpressionNode.new([e]) }
+      clause('expr_bl_start') { |e| push_block BlockExpressionStartNode.new([e],[]) }
+      clause('expr_bl_end')   { |e| pop_block  BlockExpressionCloseNode.new([e],[]) }
       clause('expr_else')     { |_| InverseNode.new }
     end
 
