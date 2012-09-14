@@ -206,13 +206,27 @@ Block helpers can also contain an `{{else}}` statement, which, when used creates
 a second set of block contents (called `inverse`) which can be yielded to the output:
 
 ```ruby
-FW.register_helper(:isFemale) do |person|
+FW.register_helper(:isFemale) do |person,&block|
+  if person.sex == 'female'
+    block.call.contents
+  else
+    block.call.inverse
+  end
+end
+```
+
+You can also register an existing method:
+
+```ruby
+def isFemale(person)
   if person.sex == 'female'
     yield.contents
   else
     yield.inverse
   end
 end
+
+FW.register_helper(method(:isFemale))
 ```
 
 Which could be used like so:

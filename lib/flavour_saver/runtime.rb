@@ -104,10 +104,9 @@ module FlavourSaver
       call = node.method.first
       content_runtime = create_child_runtime(node.contents)
       alternate_runtime = create_child_runtime(node.alternate) if node.respond_to? :alternate
-      block = proc do
+      evaluate_call(call, block_context) do
         BlockRuntime.new(block_context,content_runtime,alternate_runtime)
       end
-      evaluate_call(call, block_context, &block)
     end
 
     def create_child_runtime(body=[])
