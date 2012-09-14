@@ -201,12 +201,14 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}hello{{/foo}}')) }
 
     it 'has a block start and end' do
-      items.map(&:class).should == [ FlavourSaver::BlockExpressionStartNode, FlavourSaver::OutputNode, FlavourSaver::BlockExpressionCloseNode ]
+      items.map(&:class).should == [ FlavourSaver::BlockExpressionNode ]
     end
 
-    describe FlavourSaver::BlockExpressionStartNode do
-      it 'links to the closing node' do
-        items.first.closed_by.should == items.last
+    describe '#contents' do
+      it 'contains a single output node' do
+        items.first.contents.items.size.should == 1
+        items.first.contents.items.first.should be_a(FlavourSaver::OutputNode)
+        items.first.contents.items.first.value.should == 'hello'
       end
     end
   end
@@ -214,16 +216,16 @@ describe FlavourSaver::Parser do
   describe '{{/foo}}' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{/foo}}')) }
 
-    it 'raises UnbalancedBlockError for "/foo"' do
-      -> { subject }.should raise_error(FlavourSaver::Parser::UnbalancedBlockError, /\/foo/)
+    it 'raises a syntax error' do
+      -> { subject }.should raise_error
     end
   end
 
   describe '{{#foo}}' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}')) }
 
-    it 'raises UnbalancedBlockError for "#foo"' do
-      -> { subject }.should raise_error(FlavourSaver::Parser::UnbalancedBlockError, /#foo/)
+    it 'raises a syntax error' do
+      -> { subject }.should raise_error
     end
   end
 
@@ -238,8 +240,8 @@ describe FlavourSaver::Parser do
   describe '{{#foo}}{{#bar}}{{/foo}}' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}{{#bar}}{{/foo}}')) }
 
-    it 'raises UnbalancedBlockError for "#bar"' do
-      -> { subject }.should raise_error(FlavourSaver::Parser::UnbalancedBlockError, /#bar/)
+    it 'raises a syntax error' do
+      -> { subject }.should raise_error
     end
   end
 
@@ -255,20 +257,11 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}{{#foo}}{{/foo}}{{/foo}}')) }
 
     describe 'the outer block' do
-      it 'is closed by the last node' do
-        items.first.closed_by.should == items.last
-      end
-    end
+      let(:block) { subject.items.first }
 
-    describe 'the inner block' do
-      it 'is closed by the inner node' do
-        items[1].closed_by.should == items[-2]
-      end
-    end
-
-    describe 'the block ends' do
-      it 'should not be the same nodes' do
-        items.last.should_not == items[-2]
+      it 'should contain another block' do
+        block.contents.items.size.should == 1
+        block.contents.items.first.should be_a(FlavourSaver::BlockExpressionNode)
       end
     end
   end

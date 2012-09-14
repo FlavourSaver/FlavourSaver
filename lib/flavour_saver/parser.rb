@@ -8,44 +8,19 @@ module FlavourSaver
     class UnbalancedBlockError < StandardError; end
 
     class Environment < RLTK::Parser::Environment
-      attr_accessor :block_stack
-      
-      def initialize
-        self.block_stack = []
+      def push_block block
+        blocks.push(block.name)
+        block
       end
 
-      def push_block(node)
-        unless block_stack.member? node # not really sure why this is necessary.
-          self.block_stack << node
-          puts "+ stack: #{block_stack.inspect}"
-        end
-        node
+      def pop_block block
+        b = blocks.pop
+        raise UnbalancedBlockError, "Unable to find matching opening for {{/#{block.name}}}" if b != block.name
+        block
       end
 
-      def pop_block(node)
-        puts "looking for matching node for #{node}"
-        sibling = block_stack.select { |n| n.name == node.name }.last
-        if sibling
-          "found #{sibling.inspect} for #{node.inspect}"
-          node.opened_by    = sibling
-          sibling.closed_by = node
-          block_stack.delete(sibling)
-          puts "- stack: #{block_stack.inspect}"
-        end
-        node
-      end
-
-      def after_parse
-        block_stack.each do |node|
-          raise UnbalancedBlockError, "Unable to find a matching close expression for \"##{node.name}\"."
-        end
-      end
-    end
-
-    def self.parse(tokens, opts={})
-      opts = build_parse_opts(opts)
-      super(tokens,opts).tap do |r|
-        opts[:env].after_parse
+      def blocks
+        @blocks ||= []
       end
     end
 
@@ -53,27 +28,25 @@ module FlavourSaver
     right :EQ
 
     production(:template) do
-      clause('template_item') { |i| TemplateNode.new([i]) }
-      clause('template template_item') { |t,i| t.items << i; t }
-      clause('') { TemplateNode.new([]) }
+      clause('template_items') { |i| TemplateNode.new(i) }
     end
 
-    production(:template_item) do
-      clause('output') { |e| e }
-      clause('expression') { |e| e }
-    end
+    empty_list(:template_items, [:output, :expression], 'WHITE?')
 
     production(:output) do
       clause('OUT') { |o| OutputNode.new(o) }
     end
 
     production(:expression) do
+      clause('block_expression') { |e| e }
       clause('expr')          { |e| ExpressionNode.new(e) }
       clause('expr_comment')  { |e| CommentNode.new(e) }
       clause('expr_safe')     { |e| SafeExpressionNode.new(e) }
-      clause('expr_bl_start') { |e| push_block BlockExpressionStartNode.new([e],[]) }
-      clause('expr_bl_end')   { |e| pop_block  BlockExpressionCloseNode.new([e],[]) }
-      clause('expr_else')     { |_| InverseNode.new }
+    end
+
+    production(:block_expression) do
+      clause('expr_bl_start template expr_else template expr_bl_end') { |e0,e1,_,e3,e2| BlockExpressionNodeWithElse.new([e0], e1,e2,e3) }
+      clause('expr_bl_start template expr_bl_end') { |e0,e1,e2| BlockExpressionNode.new([e0],e1,e2) }
     end
 
     production(:expr_else) do
@@ -93,12 +66,12 @@ module FlavourSaver
     end
 
     production(:expr_bl_start) do
-      clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| CallNode.new(e,[]) }
-      clause('EXPRST HASH WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| CallNode.new(e,a) }
+      clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
+      clause('EXPRST HASH WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| push_block CallNode.new(e,a) }
     end
 
     production(:expr_bl_end) do
-      clause('EXPRST FWSL WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| CallNode.new(e,[]) }
+      clause('EXPRST FWSL WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| pop_block CallNode.new(e,[]) }
     end
 
     production(:expression_contents) do

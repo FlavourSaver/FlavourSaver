@@ -6,53 +6,42 @@ module FlavourSaver
   InappropriateUseOfElseException  = Class.new(StandardError)
   class Runtime
 
-    attr_accessor :context, :parent
+    attr_accessor :context, :parent, :ast
 
     def self.run(ast, context, locals, helpers=[])
       self.new(ast, context, locals, helpers).to_s
     end
 
-    def initialize(ast, context=nil, locals={}, helpers=[])
+    def initialize(ast, context=nil, locals={}, helpers=[],parent=nil)
       @ast = ast
       @locals = locals
       @helpers = helpers
       @context = context
+      @parent = parent
     end
 
-    def to_s
-      evaluate_node(@ast)
+    def to_s(tmp_context = nil)
+      if tmp_context
+        old_context = @context
+        @context = tmp_context
+        result = evaluate_node(@ast)
+        @context = old_context
+        result
+      else
+        evaluate_node(@ast)
+      end
     end
 
-    def evaluate_node(node,block=[])
+    def strip(tmp_context = nil)
+      self.to_s(tmp_context).gsub(/[\s\r\n]+/,' ').strip
+    end
+
+    def evaluate_node(node)
       case node
-      when BlockExpressionCloseNode
-        ''
       when TemplateNode
-        deblock_nodes(*node.items).join ''
-        # result = ''
-        # pos = 0
-        # len = node.items.size
-        # while(pos < len)
-        #   n = node.items[pos]
-        #   puts "deblocking node #{node.to_s}"
-        #   puts "node.arguments = #{node.arguments}" if node.respond_to? :arguments
-        #   if n.is_a? BlockExpressionStartNode
-        #     blocknode = n
-        #     blockbody = []
-        #     pos += 1
-        #     while (node.items[pos] != blocknode.closed_by)
-        #       n = node.items[pos]
-        #       blockbody << n
-        #       pos += 1
-        #     end
-        #     result << evaluate_block(blocknode, blockbody).to_s
-        #   else
-        #     result << evaluate_node(n).to_s
-        #     pos += 1
-        #   end
-        # end
-        # puts "Result of deblocking: #{result}"
-        # result
+        node.items.map { |n| evaluate_node(n) }.join('')
+      when BlockExpressionNode
+        evaluate_block(node).to_s
       when OutputNode
         node.value
       when StringNode
@@ -80,8 +69,12 @@ module FlavourSaver
       @parent
     end
 
+    def parent?
+      !!@parent
+    end
+
     def evaluate_call(call, context=context, &block)
-      context = Helpers.decorate_with(context,@helpers,@locals)
+      context = Helpers.decorate_with(context,@helpers,@locals) unless context.is_a? Helpers::Decorator
       case call
       when ParentCallNode
         parent.evaluate_call(call.to_callnode,&block)
@@ -101,68 +94,45 @@ module FlavourSaver
     end
 
     def evaluate_expression(node, &block)
-      r = node.method.inject(context) do |result,call|
-        result = evaluate_call(call, result, &block)
+      result = node.method.inject(context) do |context,call|
+        context = evaluate_call(call, context, &block)
       end
-      r.respond_to?(:join) ? r.join('') : r
+      result.respond_to?(:join) ? result.join('') : result
     end
 
-    def evaluate_block(node,body=[])
+    def evaluate_block(node,block_context=@context)
       call = node.method.first
-      if call.name == 'if'
-        # I JUST LOVE SPECIAL CASES THANKS WYCATS!!
-        true_body, false_body = chunk_block_body(body)
-        true_runtime = create_child_runtime(true_body)
-        false_runtime = create_child_runtime(false_body)
-        block = proc do |truthy|
-          child = truthy ? true_runtime : false_runtime
-          child.context = context
-          result = child.to_s
-          child.context = nil
-          result
-        end
-      else
-        child = create_child_runtime(body)
-        block = proc do |context|
-          child.context = context
-          result = child.to_s
-          child.context = nil
-          result
-        end
+      content_runtime = create_child_runtime(node.contents)
+      alternate_runtime = create_child_runtime(node.alternate) if node.respond_to? :alternate
+      block = proc do
+        BlockRuntime.new(block_context,content_runtime,alternate_runtime)
       end
-        evaluate_call(call, context, &block)
-    end
-
-    def chunk_block_body(body)
-      yes_body = []
-      no_body  = []
-      inverse_seen = false
-      body.each do |node|
-        if node.is_a? InverseNode
-          inverse_seen = true
-        elsif inverse_seen
-          no_body << node
-        else
-          yes_body << node
-        end
-      end
-      [yes_body, no_body]
+      evaluate_call(call, block_context, &block)
     end
 
     def create_child_runtime(body=[])
-      Runtime.new(TemplateNode.new(body),nil,@locals,@helpers).tap { |r| r.parent = self }
-    end
-
-    def deblock_nodes(*nodes)
-      # Curse me! I can't think of a nice Enumerable way to do this!
-      puts "incoming nodes: #{nodes.inspect}"
-      result = NodeCollection.new(nodes).to_a
-      puts "result: #{result.map(&:to_s).inspect}"
-      result
+      node = body.is_a?(TemplateNode) ? body : TemplateNode.new(body)
+      Runtime.new(node,nil,@locals,@helpers,self)
     end
 
     def inspect
       "#<FlavourSaver::Runtime contents=#{@ast.inspect}>"
+    end
+
+    class BlockRuntime
+      def initialize(block_context,content_runtime,alternate_runtime=nil)
+        @block_context = block_context
+        @content_runtime = content_runtime
+        @alternate_runtime = alternate_runtime
+      end
+
+      def contents(context=@block_context)
+        @content_runtime.to_s(context)
+      end
+
+      def inverse(context=@block_context)
+        @alternate_runtime.to_s(context)
+      end
     end
 
   end

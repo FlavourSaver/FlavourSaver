@@ -180,11 +180,6 @@ describe FlavourSaver::Runtime do
       context.stub(:foo)
       subject.evaluate_block(block, body)
     end
-
-    it 'passes a block to the helper' do
-      context.stub(:foo).and_yield(nil)
-      subject.evaluate_block(block,body).should == 'hello world'
-    end
   end
 
   describe '#create_child_runtime' do

@@ -153,6 +153,78 @@ Would output:
 </ul>
 ```
 
+### Adding block helpers
+
+Creating a block helper works exactly like adding a regular helper, except that
+the helper implementation can call `yield.contents` one or more times, with an
+optional argument setting the context of the block execution:
+
+```ruby
+FW.register_helper(:three_times) do
+  yield.contents
+  yield.contents
+  yield.contents
+end
+```
+
+Which when called with the following template:
+
+```handlebars
+{{#three_times}}
+  hello
+{{/three_times}}
+```
+
+would result in the following output:
+```
+  hello
+  hello
+  hello
+```
+
+Implementing a simple iterator is dead easy:
+
+```ruby
+FW.register_helper(:list_people) do |people|
+  people.each do |person|
+    yield.contents person
+  end
+end
+```
+
+Which could be used like so:
+
+```handlebars
+{{#list_people people}}
+  <b>{{name}}<b><br />
+  Age: {{age}}<br />
+  Sex: {{sex}}<br />
+{{/list_people}}
+```
+
+Block helpers can also contain an `{{else}}` statement, which, when used creates
+a second set of block contents (called `inverse`) which can be yielded to the output:
+
+```ruby
+FW.register_helper(:isFemale) do |person|
+  if person.sex == 'female'
+    yield.contents
+  else
+    yield.inverse
+  end
+end
+```
+
+Which could be used like so:
+
+```handlebars
+{{#isFemale person}}
+  {{person.name}} is female.
+{{else}}
+  {{person.name}} is male.
+{{/isFemale}}
+```
+
 ## Contributing
 
 1. Fork it

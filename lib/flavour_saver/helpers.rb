@@ -4,18 +4,21 @@ module FlavourSaver
   module Helpers
     class Defaults
       def with(args)
-        yield args
+        yield.contents args
       end
 
       def each(collection)
         collection.each do |element|
-          yield element
+          yield.contents element
         end
       end
 
       def if(truthy)
-        # this is deep voodoo magic handled by the runtime.
-        yield truthy
+        if truthy
+          yield.contents
+        else
+          yield.inverse
+        end
       end
 
       def unless(falsy,&b)
@@ -23,7 +26,7 @@ module FlavourSaver
       end
 
       def this
-        self
+        @source || self
       end
     end
 
@@ -35,7 +38,7 @@ module FlavourSaver
       end
 
       def respond_to?(name)
-        @locals.keys.include(name) || @source.respond_to?(name)
+        @locals.keys.member?(name) || @source.respond_to?(name)
       end
 
       def method_missing(name,*args,&b)

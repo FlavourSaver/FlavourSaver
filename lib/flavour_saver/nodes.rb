@@ -72,8 +72,6 @@ module FlavourSaver
     end
   end
 
-  class InverseNode < TemplateItemNode ; end
-
   class ExpressionNode < TemplateItemNode
     child :method, [CallNode]
     def to_s
@@ -82,42 +80,38 @@ module FlavourSaver
   end
 
   class BlockExpressionNode < ExpressionNode
-    child :sibling, [BlockExpressionNode]
+    child :contents, TemplateNode
+    child :closer,   CallNode
 
     def name
       method.first.name
     end
-  end
-
-  class BlockExpressionCloseNode < BlockExpressionNode 
-
-    def opened_by=(node)
-      self.sibling = [node]
-      node
-    end
-
-    def opened_by
-      sibling.first
-    end
 
     def to_s
-      "{{/#{name}##{object_id}}}"
+      "{{##{method.map(&:to_s).join ''}}}#{contents.to_s}{{/#{closer.name}}}"
+    end
+
+    def inspect
+      r = "{{##{method.map(&:to_s).join ''}}}\n"
+      r << "  "
+      r << contents.inspect.split("\n").join("\n  ")
+      r
     end
   end
 
-  class BlockExpressionStartNode < BlockExpressionNode
-
-    def closed_by=(node)
-      self.sibling=[node]
-      node
-    end
-
-    def closed_by
-      sibling.first
-    end
+  class BlockExpressionNodeWithElse < BlockExpressionNode
+    child :alternate, TemplateNode
 
     def to_s
-      "{{##{method.map(&:to_s).join ''}##{object_id}}}"
+      "{{##{method.map(&:to_s).join ''}}}#{contents.to_s}{{else}}#{alternate.to_s}{{/#{closer.name}}}"
+    end
+
+    def inspect
+      r = "{{##{method.map(&:to_s).join ''}}}\n"
+      r << contents.inspect.split("\n").join("\n  ")
+      r << "\n  {{else}}\n"
+      r << alternate.inspect.split("\n").join("\n  ")
+      r
     end
   end
 
