@@ -132,7 +132,7 @@ Block helpers can simply yield from the blocks body:
 
 ```ruby
 FS.register_helper(:list) do |people|
-  "<ul>\n  <li>#{people.join("</li>\n  <li>"")}</li>\n</ul>"
+  "<ul>\n  <li>#{people.join("</li>\n  <li>")}</li>\n</ul>"
 end
 ```
 
