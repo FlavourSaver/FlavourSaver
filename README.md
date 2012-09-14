@@ -1,7 +1,6 @@
 # FlavourSaver
 
-FlavourSaver is a pure-ruby implimentation of the [Handlebars](http://handlebarsjs.com)
-templating language.
+[Handlebars.js](http://handlebarsjs.com) without the `.js`
 
 ## License
 
