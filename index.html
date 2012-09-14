@@ -1,33 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>FlavourSaver</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="javascripts/scale.fix.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <title>Flavoursaver by jamesotron</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1><span></span>FlavourSaver</h1>
-        <p>Handlebars.js without the .js</p>
-        <p class="view"><a href="https://github.com/jamesotron/FlavourSaver">View the Project on GitHub <small>jamesotron/FlavourSaver</small></a></p>
-        <ul>
-          <li><a href="https://github.com/jamesotron/FlavourSaver/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/jamesotron/FlavourSaver/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/jamesotron/FlavourSaver">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <h1>FlavourSaver</h1>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Flavoursaver</h1>
+          <h2>Pure-ruby Handlebars parser based on RLTK.</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/jamesotron/FlavourSaver/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/jamesotron/FlavourSaver/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/jamesotron/FlavourSaver" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>FlavourSaver</h1>
 
 <p>FlavourSaver is a pure-ruby implimentation of the <a href="http://handlebarsjs.com">Handlebars</a>
 templating language.</p>
@@ -189,6 +193,85 @@ returns <code>self</code>:</p>
 <span class="nt">&lt;/ul&gt;</span>
 </pre></div>
 
+<h3>Adding block helpers</h3>
+
+<p>Creating a block helper works exactly like adding a regular helper, except that
+the helper implementation can call <code>yield.contents</code> one or more times, with an
+optional argument setting the context of the block execution:</p>
+
+<div class="highlight"><pre><span class="no">FW</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:three_times</span><span class="p">)</span> <span class="k">do</span>
+  <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
+  <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
+  <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Which when called with the following template:</p>
+
+<pre lang="handlebars"><code>{{#three_times}}
+  hello
+{{/three_times}}
+</code></pre>
+
+<p>would result in the following output:</p>
+
+<pre><code>  hello
+  hello
+  hello
+</code></pre>
+
+<p>Implementing a simple iterator is dead easy:</p>
+
+<div class="highlight"><pre><span class="no">FW</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:list_people</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">people</span><span class="o">|</span>
+  <span class="n">people</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">person</span><span class="o">|</span>
+    <span class="k">yield</span><span class="o">.</span><span class="n">contents</span> <span class="n">person</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Which could be used like so:</p>
+
+<pre lang="handlebars"><code>{{#list_people people}}
+  &lt;b&gt;{{name}}&lt;b&gt;&lt;br /&gt;
+  Age: {{age}}&lt;br /&gt;
+  Sex: {{sex}}&lt;br /&gt;
+{{/list_people}}
+</code></pre>
+
+<p>Block helpers can also contain an <code>{{else}}</code> statement, which, when used creates
+a second set of block contents (called <code>inverse</code>) which can be yielded to the output:</p>
+
+<div class="highlight"><pre><span class="no">FW</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:isFemale</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">person</span><span class="p">,</span><span class="o">&amp;</span><span class="n">block</span><span class="o">|</span>
+  <span class="k">if</span> <span class="n">person</span><span class="o">.</span><span class="n">sex</span> <span class="o">==</span> <span class="s1">'female'</span>
+    <span class="n">block</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">contents</span>
+  <span class="k">else</span>
+    <span class="n">block</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">inverse</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>You can also register an existing method:</p>
+
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">isFemale</span><span class="p">(</span><span class="n">person</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">person</span><span class="o">.</span><span class="n">sex</span> <span class="o">==</span> <span class="s1">'female'</span>
+    <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
+  <span class="k">else</span>
+    <span class="k">yield</span><span class="o">.</span><span class="n">inverse</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="no">FW</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="nb">method</span><span class="p">(</span><span class="ss">:isFemale</span><span class="p">))</span>
+</pre></div>
+
+<p>Which could be used like so:</p>
+
+<pre lang="handlebars"><code>{{#isFemale person}}
+  {{person.name}} is female.
+{{else}}
+  {{person.name}} is male.
+{{/isFemale}}
+</code></pre>
+
 <h2>Contributing</h2>
 
 <ol>
@@ -198,13 +281,15 @@ returns <code>self</code>:</p>
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create new Pull Request</li>
 </ol>
-      </section>
+        </section>
+
+        <footer>
+          Flavoursaver is maintained by <a href="https://github.com/jamesotron">jamesotron</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
     </div>
-    <footer>
-      <p>Project maintained by <a href="https://github.com/jamesotron">jamesotron</a></p>
-      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
-    </footer>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
   </body>
 </html>
