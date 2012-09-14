@@ -49,6 +49,7 @@ Currently supported:
     - Expressions wrapped in triple-stashes are not HTML escaped (`{{{an expression}}}`)
   - Block expressions
     - Simple API for adding block helpers.
+    - Railstie.
 
 Coming soon:
   - Partials
