@@ -33,8 +33,7 @@
         <section id="main_content">
           <h1>FlavourSaver</h1>
 
-<p>FlavourSaver is a pure-ruby implimentation of the <a href="http://handlebarsjs.com">Handlebars</a>
-templating language.</p>
+<p><a href="http://handlebarsjs.com">Handlebars.js</a> without the <code>.js</code></p>
 
 <h2>License</h2>
 
@@ -175,7 +174,7 @@ returns <code>self</code>:</p>
 <p>Block helpers can simply yield from the blocks body:</p>
 
 <div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:list</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">people</span><span class="o">|</span>
-  <span class="s2">"&lt;ul&gt;</span><span class="se">\n</span><span class="s2">  &lt;li&gt;</span><span class="si">#{</span><span class="n">people</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"&lt;/li&gt;</span><span class="se">\n</span><span class="s2">  &lt;li&gt;"")}&lt;/li&gt;</span><span class="se">\n</span><span class="s2">&lt;/ul&gt;"</span>
+  <span class="s2">"&lt;ul&gt;</span><span class="se">\n</span><span class="s2">  &lt;li&gt;</span><span class="si">#{</span><span class="n">people</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"&lt;/li&gt;</span><span class="se">\n</span><span class="s2">  &lt;li&gt;"</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/li&gt;</span><span class="se">\n</span><span class="s2">&lt;/ul&gt;"</span>
 <span class="k">end</span>
 </pre></div>
 
