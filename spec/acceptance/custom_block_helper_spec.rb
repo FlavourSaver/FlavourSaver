@@ -24,12 +24,11 @@ describe 'Fixture: custom_block_helper.hbs' do
 
   describe 'proc helper' do
     it 'renders correctly' do
-      b = proc { |&b|
+      FlavourSaver.register_helper(:three_times) { |&b|
         (1..3).map do |i|
           b.call.contents i
-        end.join
+        end.join ''
       }
-      FlavourSaver.register_helper(:three_times, &b)
       subject.should == "1 time. 2 time. 3 time."
     end
   end

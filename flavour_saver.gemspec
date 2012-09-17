@@ -20,6 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rspec-mocks'
   gem.add_development_dependency 'rspec-expectations'
   gem.add_development_dependency 'guard-bundler'
+  gem.add_development_dependency 'activesupport'
 
   gem.add_dependency 'rltk', '~> 2.2.0'
   gem.add_dependency 'tilt', '~> 1.3.3'
