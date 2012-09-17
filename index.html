@@ -34,7 +34,7 @@
           <h2>WAT?</h2>
 
 <p>FlavourSaver is a ruby-based implementation of the <a href="http://handlebars.js">Handlebars.js</a>
-templating language. FlavourSaver supports Handlebars template rendering natively on 
+templating language. FlavourSaver supports Handlebars template rendering natively on
 Rails and on other frameworks (such as Sinatra) via Tilt.</p>
 
 <p>Please use it, break it, and send issues/PR's for improvement.</p>
@@ -66,12 +66,12 @@ for more details).</p>
 
 <p>FlavourSaver provides an interface to the amazing
 <a href="https://github.com/rtomayko/tilt">Tilt</a> templating library, meaning that it
-should work with anything that has Tilt support (Sinatra, etc) and has a 
+should work with anything that has Tilt support (Sinatra, etc) and has a
 native Rails template handler.</p>
 
 <h2>Status</h2>
 
-<p>FlavourSaver is in it's infancy, your pull requests are greatly appreciated.</p>
+<p>FlavourSaver is in its infancy; your pull requests are greatly appreciated.</p>
 
 <p>Currently supported:</p>
 
@@ -113,7 +113,7 @@ provided that the hash is the last argument.</li>
 
 <h3>#with</h3>
 
-<p>Yields it's argument into the context of the block contents:</p>
+<p>Yields its argument into the context of the block contents:</p>
 
 <pre lang="handlebars"><code>{{#with person}}
   {{name}}
@@ -122,7 +122,7 @@ provided that the hash is the last argument.</li>
 
 <h3>#each</h3>
 
-<p>Takes a single collection argument and yeilds the block's contents once 
+<p>Takes a single collection argument and yeilds the block's contents once
 for each member of the collection:</p>
 
 <pre lang="handlebars"><code>{{#each people}}
@@ -155,7 +155,7 @@ is truthy.</p>
 
 <h3>this</h3>
 
-<p>In JavaScript this is a native keyword, in Ruby not-so-much. FlavourSaver's <code>this</code> helper
+<p>In JavaScript <code>this</code> is a native keyword; in Ruby, not so much. FlavourSaver's <code>this</code> helper
 returns <code>self</code>:</p>
 
 <pre lang="handlebars"><code>{{#each names}}
