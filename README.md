@@ -128,8 +128,7 @@ returns `self`:
 Additional helpers can easy be added by calling `FS.register_helper`, eg:
 
 ```ruby
-FW.register_helper(:whom) do
- 'world'
+FW.register_helper(:whom) { 'world' }
 ```
 
 Now if you were to render the following template:
