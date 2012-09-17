@@ -81,6 +81,7 @@ module FlavourSaver
     production(:call) do
       clause('object_path') { |e| e }
       clause('object_path WHITE arguments') { |e0,_,e1| e0.last.arguments = e1; e0 }
+      clause('DOT') { |_| [CallNode.new('this', [])] }
     end
 
     production('arguments') do
@@ -105,7 +106,12 @@ module FlavourSaver
       clause('IDENT EQ object_path') { |e0,_,e1| { e0.to_sym => e1 } }
     end
 
-    nonempty_list(:object_path, :object, :DOT)
+    production(:object_sep) do
+      clause('DOT') { |_| }
+      clause('FWSL') { |_| }
+    end
+
+    nonempty_list(:object_path, :object, :object_sep)
 
     production(:object) do
       clause('IDENT') { |e| CallNode.new(e, []) }
