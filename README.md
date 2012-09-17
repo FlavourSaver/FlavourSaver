@@ -26,7 +26,8 @@ Or install it yourself as:
 
 FlavourSaver provides an interface to the amazing
 [Tilt](https://github.com/rtomayko/tilt) templating library, meaning that it
-should work with anything that has Tilt support (Sinatra, Rails, etc)
+should work with anything that has Tilt support (Sinatra, etc) and has a 
+native Rails template handler.
 
 ## Status
 
@@ -49,7 +50,6 @@ Currently supported:
     - Expressions wrapped in triple-stashes are not HTML escaped (`{{{an expression}}}`)
   - Block expressions
     - Simple API for adding block helpers.
-    - Railstie.
 
 Coming soon:
   - Partials
@@ -237,6 +237,36 @@ Which could be used like so:
 {{else}}
   {{person.name}} is male.
 {{/isFemale}}
+```
+
+## Using with Rails
+
+One potential gotcha of using FlavourSaver with Rails is that FlavourSaver doesn't let you
+have any access to the controller's instance variables. This done to maintain compatibility
+with the original JavaScript implementation of Handlebars so that templates can be used on
+both the server and client side without needing changes.
+
+When accessing controller isntance variables you should access them by way of a helper method
+or a presenter object.
+
+For example, in `ApplicationController.rb` you may have a `before_filter` which authenticates
+the current user's session cookie and stores it in the controller's `@current_user` instance
+variable.
+
+To access this variable you could create a simple helper method in `ApplicationHelpers`:
+
+```ruby
+def current_user
+  @current_user
+end
+```
+
+Which would mean that you are able to access it in your template:
+
+```handlebars
+{{#if current_user}}
+  Welcome back, {{current_user.first_name}}!
+{{/if}}
 ```
 
 ## Contributing

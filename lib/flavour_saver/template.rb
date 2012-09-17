@@ -14,6 +14,6 @@ module FlavourSaver
     def evaluate(scope=Object.new,locals={},&block)
       Runtime.run(@ast,scope,locals)
     end
-  end
 
+  end
 end

@@ -10,6 +10,22 @@ module FlavourSaver
   autoload :Template,       'flavour_saver/template'
   autoload :NodeCollection, 'flavour_saver/node_collection'
 
+  if defined? Rails
+    class Engine < Rails::Engine
+    end
+
+    ActiveSupport.on_load(:action_view) do
+      handler = proc do |template| 
+        # I'd rather be caching the Runtime object ready to fire, but apparently I don't get that luxury.
+        <<-SOURCE
+        FlavourSaver.evaluate((begin;#{template.source.inspect};end),self)
+        SOURCE
+      end
+      ActionView::Template.register_template_handler(:hbs, handler)
+      ActionView::Template.register_template_handler(:handlebars, handler)
+    end
+  end
+
   module_function
 
   def lex(template)
@@ -21,7 +37,6 @@ module FlavourSaver
   end
 
   def evaluate(template,context)
-    context.extend(Helpers)
     Runtime.run(parse(lex(template)), context)
   end
 

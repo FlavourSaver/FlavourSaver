@@ -8,7 +8,7 @@ module FlavourSaver
 
     attr_accessor :context, :parent, :ast
 
-    def self.run(ast, context, locals, helpers=[])
+    def self.run(ast, context, locals={}, helpers=[])
       self.new(ast, context, locals, helpers).to_s
     end
 
