@@ -44,7 +44,7 @@ module FlavourSaver
       def method_missing(name,*args,&b)
         if @locals[name]
           @locals[name]
-        elsif @source.respond_to? name
+        else 
           @source.send(name, *args, &b)
         end
       end

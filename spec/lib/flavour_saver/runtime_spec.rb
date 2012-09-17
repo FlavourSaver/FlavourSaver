@@ -173,12 +173,11 @@ describe FlavourSaver::Runtime do
   describe '#evaluate_block' do
     let(:template) { "{{#foo}}hello world{{/foo}}" }
     let(:block)    { ast.items.first }
-    let(:body)     { ast.items[1..1] }
 
     it 'creates a new runtime' do
       subject.should_receive(:create_child_runtime)
       context.stub(:foo)
-      subject.evaluate_block(block, body)
+      subject.evaluate_block(block, context)
     end
   end
 
