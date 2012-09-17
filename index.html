@@ -167,8 +167,7 @@ returns <code>self</code>:</p>
 
 <p>Additional helpers can easy be added by calling <code>FS.register_helper</code>, eg:</p>
 
-<div class="highlight"><pre><span class="no">FW</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:whom</span><span class="p">)</span> <span class="k">do</span>
- <span class="s1">'world'</span>
+<div class="highlight"><pre><span class="no">FW</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:whom</span><span class="p">)</span> <span class="p">{</span> <span class="s1">'world'</span> <span class="p">}</span>
 </pre></div>
 
 <p>Now if you were to render the following template:</p>
