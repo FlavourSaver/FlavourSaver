@@ -43,9 +43,63 @@ module FlavourSaver
 
       def method_missing(name,*args,&b)
         if @locals[name]
-          @locals[name]
+          call_local(name, *args, &b)
         else 
           @source.send(name, *args, &b)
+        end
+      end
+
+      private
+
+      def call_local(name,*args,&b)
+        if b
+          call_local_with_block(name,*args,&b)
+        elsif @locals[name].respond_to?(:call)
+          @locals[name].call(*args)
+        else
+          @locals[name]
+        end
+      end
+
+      def call_local_with_block(name, *args, &b) 
+        block = BlockWrapper.new(b)
+        local = @locals[name]
+        result = if local.respond_to? :call
+                   local.call(*args,&block)
+                 else
+                   local
+                 end
+        unless block.called?
+          block_result = b.call
+          if result && (block_result.respond_to? :contents)
+            block_result.contents
+          elsif block_result.respond_to? :inverse
+            block_result.inverse
+          else
+            result
+          end
+        else
+          result
+        end
+      end
+
+      class BlockWrapper
+        def initialize(block)
+          @block = block
+          @called = 0
+        end
+
+        def call(*args)
+          @called += 1
+          @block.call(*args)
+        end
+
+        def called
+          @called
+        end
+
+        def called?
+          @called > 0
         end
       end
     end
