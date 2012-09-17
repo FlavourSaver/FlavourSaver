@@ -104,9 +104,25 @@ module FlavourSaver
       call = node.method.first
       content_runtime = create_child_runtime(node.contents)
       alternate_runtime = create_child_runtime(node.alternate) if node.respond_to? :alternate
-      evaluate_call(call, block_context) do
-        BlockRuntime.new(block_context,content_runtime,alternate_runtime)
+      block_runtime = BlockRuntime.new(block_context,content_runtime,alternate_runtime)
+
+      result = evaluate_call(call, block_context) { block_runtime }
+
+      # Block helpers which return a bool and don't explicitly 
+      # call the block will behave as an implicit if. I don't like
+      # it but it's part of the spec.
+      if !block_runtime.rendered?
+        if result == true
+          result = block_runtime.contents
+        elsif (result == false) 
+          if block_runtime.has_inverse?
+            result = block_runtime.inverse
+          else
+            result = ''
+          end
+        end
       end
+      result
     end
 
     def create_child_runtime(body=[])
@@ -123,14 +139,25 @@ module FlavourSaver
         @block_context = block_context
         @content_runtime = content_runtime
         @alternate_runtime = alternate_runtime
+        @render_count = 0
       end
 
       def contents(context=@block_context)
+        @render_count += 1
         @content_runtime.to_s(context)
       end
 
       def inverse(context=@block_context)
+        @render_count += 1
         @alternate_runtime.to_s(context)
+      end
+
+      def has_inverse?
+        !!@alternate_runtime
+      end
+
+      def rendered?
+        @render_count > 0 ? @render_count : false
       end
     end
 
