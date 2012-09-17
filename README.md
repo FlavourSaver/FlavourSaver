@@ -39,7 +39,7 @@ native Rails template handler.
 
 ## Status
 
-FlavourSaver is in it's infancy, your pull requests are greatly appreciated.
+FlavourSaver is in its infancy, your pull requests are greatly appreciated.
 
 Currently supported:
 
@@ -114,7 +114,7 @@ Exactly the same is `#if` but backwards.
 
 ### this
 
-In JavaScript this is a native keyword, in Ruby not-so-much. FlavourSaver's `this` helper
+In JavaScript `this` is a native keyword, in Ruby not-so-much. FlavourSaver's `this` helper
 returns `self`:
 
 ```handlebars
