@@ -2,6 +2,14 @@
 
 [Handlebars.js](http://handlebarsjs.com) without the `.js`
 
+## WAT?
+
+FlavourSaver is a ruby-based implementation of the [Handlebars.js](http://handlebars.js)
+templating language. FlavourSaver supports Handlebars template rendering natively on 
+Rails and on other frameworks (such as Sinatra) via Tilt.
+
+Please use it, break it, and send issues/PR's for improvement.
+
 ## License
 
 FlavourSaver is Copyright (c) 2012 Sociable Limited and licensed under the terms
@@ -120,37 +128,20 @@ returns `self`:
 Additional helpers can easy be added by calling `FS.register_helper`, eg:
 
 ```ruby
-FS.register_helper(:people) do
-  [
-    { firstName: 'Yehuda', lastName: 'Katz' },
-    { firstName: 'Carl', lastName: 'Lerche' },
-    { firstName: 'Alan', lastName: 'Johnson' },
-  ]
-end
+FW.register_helper(:whom) do
+ 'world'
 ```
 
-Block helpers can simply yield from the blocks body:
-
-```ruby
-FS.register_helper(:list) do |people|
-  "<ul>\n  <li>#{people.join("</li>\n  <li>")}</li>\n</ul>"
-end
-```
-
-So rendering the following template:
+Now if you were to render the following template:
 
 ```handlebars
-{{#list people}}{{firstName}} {{lastName}}{{/list}}
+<h1>Hello {{whom}}!</h1>
 ```
 
-Would output:
+You would receive the following output:
 
 ```html
-<ul>
-  <li>Yehuda Katz</li>
-  <li>Carl Lerge</li>
-  <li>Alan Johnson</li>
-</ul>
+<h1>Hello world!</h1>
 ```
 
 ### Adding block helpers
