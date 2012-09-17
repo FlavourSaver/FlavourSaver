@@ -236,7 +236,7 @@ have any access to the controller's instance variables. This is done to maintain
 with the original JavaScript implementation of Handlebars so that templates can be used on
 both the server and client side without any change.
 
-When accessing controller isntance variables you should access them by way of a helper method
+When accessing controller instance variables you should access them by way of a helper method
 or a presenter object.
 
 For example, in `ApplicationController.rb` you may have a `before_filter` which authenticates
