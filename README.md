@@ -242,9 +242,9 @@ Which could be used like so:
 ## Using with Rails
 
 One potential gotcha of using FlavourSaver with Rails is that FlavourSaver doesn't let you
-have any access to the controller's instance variables. This done to maintain compatibility
+have any access to the controller's instance variables. This is done to maintain compatibility
 with the original JavaScript implementation of Handlebars so that templates can be used on
-both the server and client side without needing changes.
+both the server and client side without any change.
 
 When accessing controller isntance variables you should access them by way of a helper method
 or a presenter object.
