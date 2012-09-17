@@ -128,7 +128,7 @@ returns `self`:
 Additional helpers can easy be added by calling `FS.register_helper`, eg:
 
 ```ruby
-FW.register_helper(:whom) { 'world' }
+FS.register_helper(:whom) { 'world' }
 ```
 
 Now if you were to render the following template:
@@ -150,7 +150,7 @@ the helper implementation can call `yield.contents` one or more times, with an
 optional argument setting the context of the block execution:
 
 ```ruby
-FW.register_helper(:three_times) do
+FS.register_helper(:three_times) do
   yield.contents
   yield.contents
   yield.contents
@@ -175,7 +175,7 @@ would result in the following output:
 Implementing a simple iterator is dead easy:
 
 ```ruby
-FW.register_helper(:list_people) do |people|
+FS.register_helper(:list_people) do |people|
   people.each do |person|
     yield.contents person
   end
@@ -196,7 +196,7 @@ Block helpers can also contain an `{{else}}` statement, which, when used creates
 a second set of block contents (called `inverse`) which can be yielded to the output:
 
 ```ruby
-FW.register_helper(:isFemale) do |person,&block|
+FS.register_helper(:isFemale) do |person,&block|
   if person.sex == 'female'
     block.call.contents
   else
@@ -216,7 +216,7 @@ def isFemale(person)
   end
 end
 
-FW.register_helper(method(:isFemale))
+FS.register_helper(method(:isFemale))
 ```
 
 Which could be used like so:
