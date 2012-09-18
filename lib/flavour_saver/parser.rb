@@ -29,9 +29,19 @@ module FlavourSaver
 
     production(:template) do
       clause('template_items') { |i| TemplateNode.new(i) }
+      clause('') { TemplateNode.new([]) }
     end
 
-    empty_list(:template_items, [:output, :expression], 'WHITE?')
+    # empty_list(:template_items, [:output, :expression], 'WHITE?')
+    production(:template_items) do
+      clause('template_item') { |i| [i] }
+      clause('template_items template_item') { |i0,i1| i0 << i1 }
+    end
+
+    production(:template_item) do
+      clause('output') { |e| e }
+      clause('expression') { |e| e }
+    end
 
     production(:output) do
       clause('OUT') { |o| OutputNode.new(o) }
@@ -47,10 +57,12 @@ module FlavourSaver
     production(:block_expression) do
       clause('expr_bl_start template expr_else template expr_bl_end') { |e0,e1,_,e3,e2| BlockExpressionNodeWithElse.new([e0], e1,e2,e3) }
       clause('expr_bl_start template expr_bl_end') { |e0,e1,e2| BlockExpressionNode.new([e0],e1,e2) }
+      clause('expr_bl_inv_start template expr_else template expr_bl_end') { |e0,e1,_,e3,e2| BlockExpressionNodeWithElse.new([e0], e2,e2,e1) }
+      clause('expr_bl_inv_start template expr_bl_end') { |e0,e1,e2| BlockExpressionNodeWithElse.new([e0],TemplateNode.new([]),e2,e1) }
     end
 
     production(:expr_else) do
-      clause('EXPRST ELSE EXPRE') { |_,_,_| }
+      clause('EXPRST WHITE? ELSE WHITE? EXPRE') { |_,_,_,_,_| }
     end
 
     production(:expr) do
@@ -63,11 +75,17 @@ module FlavourSaver
 
     production(:expr_safe) do
       clause('TEXPRST expression_contents TEXPRE') { |_,e,_| e }
+      clause('EXPRST AMP expression_contents EXPRE') { |_,_,e,_| e }
     end
 
     production(:expr_bl_start) do
       clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
       clause('EXPRST HASH WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| push_block CallNode.new(e,a) }
+    end
+
+    production(:expr_bl_inv_start) do
+      clause('EXPRST HAT WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
+      clause('EXPRST HAT WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| push_block CallNode.new(e,a) }
     end
 
     production(:expr_bl_end) do
@@ -76,12 +94,17 @@ module FlavourSaver
 
     production(:expression_contents) do
       clause('WHITE? call WHITE?') { |_,e,_| e }
+      clause('WHITE? local WHITE?') { |_,e,_| [e] }
     end
 
     production(:call) do
       clause('object_path') { |e| e }
       clause('object_path WHITE arguments') { |e0,_,e1| e0.last.arguments = e1; e0 }
       clause('DOT') { |_| [CallNode.new('this', [])] }
+    end
+
+    production(:local) do
+      clause('AT IDENT') { |_,e| LocalVarNode.new(e) }
     end
 
     production('arguments') do

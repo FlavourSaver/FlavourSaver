@@ -44,6 +44,10 @@ module FlavourSaver
     Helpers.register_helper(*args,&b)
   end
 
+  def reset_helpers
+    Helpers.reset_helpers
+  end
+
   Tilt.register(Template, 'handlebars', 'hbs')
 end
 

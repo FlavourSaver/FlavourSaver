@@ -33,6 +33,10 @@ module FlavourSaver
     def to_s
       value.inspect
     end
+
+    def inspect
+      value.inspect
+    end
   end
 
   class CallNode < Node
@@ -45,8 +49,12 @@ module FlavourSaver
         str << ' '
         if arg.respond_to? :join
           str << arg.join('.')
+        elsif arg.respond_to? :keys
+          arg.each do |k,v|
+            str << "#{k}: #{v.inspect}"
+          end
         else
-          str << arg
+          str << arg.inspect
         end
       end
       str
@@ -54,6 +62,12 @@ module FlavourSaver
 
     def to_s
       arguments_to_str(name)
+    end
+  end
+  
+  class LocalVarNode < CallNode
+    def to_s
+      arguments_to_str("@#{name}")
     end
   end
 

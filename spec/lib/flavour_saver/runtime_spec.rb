@@ -72,7 +72,7 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{#foo}}bar{{/foo}}baz" }
 
       it 'snatches up the block contents and skips them from evaluation' do
-        context.stub!(:foo).and_return('')
+        context.stub!(:foo)
         subject.evaluate_node(ast).should == 'baz'
       end
     end

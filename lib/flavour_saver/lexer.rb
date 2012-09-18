@@ -21,6 +21,18 @@ module FlavourSaver
       :FWSL
     end
 
+    rule /&/, :expression do
+      :AMP
+    end
+
+    rule /\^/, :expression do
+      :HAT
+    end
+
+    rule /@/, :expression do
+      :AT
+    end
+
     rule /\!/, :expression do
       push_state :comment
       :BANG
@@ -57,6 +69,13 @@ module FlavourSaver
 
     rule /"/, :string do
       pop_state
+    end
+
+    # Handlebars allows methods with hyphens in them. Ruby doesn't, so
+    # we'll assume you're trying to index the context with the identifier
+    # and call the result.
+    rule /([A-Za-z][a-z0-9_-]*[a-z0-9])/, :expression do |str|
+      [ :LITERAL, str ]
     end
 
     rule /\[/, :expression do
