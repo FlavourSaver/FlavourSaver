@@ -31,10 +31,16 @@
         <hr>
 
         <section id="main_content">
-          <h2>WAT?</h2>
+        <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<h1>FlavourSaver</h1>
+
+<p><a href="http://handlebarsjs.com">Handlebars.js</a> without the <code>.js</code></p>
+
+<h2>WAT?</h2>
 
 <p>FlavourSaver is a ruby-based implementation of the <a href="http://handlebars.js">Handlebars.js</a>
-templating language. FlavourSaver supports Handlebars template rendering natively on
+templating language. FlavourSaver supports Handlebars template rendering natively on 
 Rails and on other frameworks (such as Sinatra) via Tilt.</p>
 
 <p>Please use it, break it, and send issues/PR's for improvement.</p>
@@ -66,16 +72,17 @@ for more details).</p>
 
 <p>FlavourSaver provides an interface to the amazing
 <a href="https://github.com/rtomayko/tilt">Tilt</a> templating library, meaning that it
-should work with anything that has Tilt support (Sinatra, etc) and has a
+should work with anything that has Tilt support (Sinatra, etc) and has a 
 native Rails template handler.</p>
 
 <h2>Status</h2>
 
-<p>FlavourSaver is in its infancy; your pull requests are greatly appreciated.</p>
+<p>FlavourSaver is in its infancy, your pull requests are greatly appreciated.</p>
 
 <p>Currently supported:</p>
 
 <ul>
+<li>Full support of Moustache and Handlebars templates.</li>
 <li>Expressions:
 
 <ul>
@@ -101,53 +108,39 @@ provided that the hash is the last argument.</li>
 
 <ul>
 <li>Simple API for adding block helpers.</li>
+<li>Block expressions with inverse blocks</li>
+<li>Inverse blocks</li>
 </ul>
 </li>
-</ul><p>Coming soon:</p>
-
-<ul>
 <li>Partials</li>
-</ul><h2>Helpers</h2>
+</ul>
+<h2>Helpers</h2>
 
 <p>FlavourSaver implements the following helpers by default:</p>
 
 <h3>#with</h3>
 
-<p>Yields its argument into the context of the block contents:</p>
+<p>Yields it's argument into the context of the block contents:</p>
 
-<pre lang="handlebars"><code>{{#with person}}
-  {{name}}
-{{/with}}
-</code></pre>
+
 
 <h3>#each</h3>
 
-<p>Takes a single collection argument and yeilds the block's contents once
+<p>Takes a single collection argument and yeilds the block's contents once 
 for each member of the collection:</p>
 
-<pre lang="handlebars"><code>{{#each people}}
-  {{name}}
-{{/each}}
-</code></pre>
+
 
 <h3>#if</h3>
 
 <p>Takes a single argument and yields the contents of the block if that argument
 is truthy.</p>
 
-<pre lang="handlebars"><code>{{#if person}}
-  Hi {{person.name}}!
-{{/if}}
-</code></pre>
+
 
 <p>It can also handle a special case <code>{{else}}</code> expression:</p>
 
-<pre lang="handlebars"><code>{{#if person}}
-  Hi {{person.name}}!
-{{else}}
-  Nobody to say hi to.
-{{/if}}
-</code></pre>
+
 
 <h3>#unless</h3>
 
@@ -155,30 +148,38 @@ is truthy.</p>
 
 <h3>this</h3>
 
-<p>In JavaScript <code>this</code> is a native keyword; in Ruby, not so much. FlavourSaver's <code>this</code> helper
+<p>In JavaScript <code>this</code> is a native keyword, in Ruby not-so-much. FlavourSaver's <code>this</code> helper
 returns <code>self</code>:</p>
 
-<pre lang="handlebars"><code>{{#each names}}
-  {{this}}
-{{/each}}
-</code></pre>
+
+
+<h3>log</h3>
+
+<p>Writes log output.  The destination can be changed by assigning a <code>Logger</code> instance to
+<code>FlavourSaver.logger=</code>.  On Rails <code>FlavourSaver.logger</code> automatically points at
+<code>Rails.logger</code>.</p>
 
 <h3>Adding additional helpers</h3>
 
 <p>Additional helpers can easy be added by calling <code>FS.register_helper</code>, eg:</p>
 
-<div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:whom</span><span class="p">)</span> <span class="p">{</span> <span class="s1">'world'</span> <span class="p">}</span>
-</pre></div>
+<div class="highlight">
+<pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:whom</span><span class="p">)</span> <span class="p">{</span> <span class="s1">'world'</span> <span class="p">}</span>
+</pre>
+</div>
+
 
 <p>Now if you were to render the following template:</p>
 
-<pre lang="handlebars"><code>&lt;h1&gt;Hello {{whom}}!&lt;/h1&gt;
-</code></pre>
+
 
 <p>You would receive the following output:</p>
 
-<div class="highlight"><pre><span class="nt">&lt;h1&gt;</span>Hello world!<span class="nt">&lt;/h1&gt;</span>
-</pre></div>
+<div class="highlight">
+<pre><span class="nt">&lt;h1&gt;</span>Hello world!<span class="nt">&lt;/h1&gt;</span>
+</pre>
+</div>
+
 
 <h3>Adding block helpers</h3>
 
@@ -186,19 +187,19 @@ returns <code>self</code>:</p>
 the helper implementation can call <code>yield.contents</code> one or more times, with an
 optional argument setting the context of the block execution:</p>
 
-<div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:three_times</span><span class="p">)</span> <span class="k">do</span>
+<div class="highlight">
+<pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:three_times</span><span class="p">)</span> <span class="k">do</span>
   <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
   <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
   <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
 <span class="k">end</span>
-</pre></div>
+</pre>
+</div>
+
 
 <p>Which when called with the following template:</p>
 
-<pre lang="handlebars"><code>{{#three_times}}
-  hello
-{{/three_times}}
-</code></pre>
+
 
 <p>would result in the following output:</p>
 
@@ -209,37 +210,39 @@ optional argument setting the context of the block execution:</p>
 
 <p>Implementing a simple iterator is dead easy:</p>
 
-<div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:list_people</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">people</span><span class="o">|</span>
+<div class="highlight">
+<pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:list_people</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">people</span><span class="o">|</span>
   <span class="n">people</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">person</span><span class="o">|</span>
     <span class="k">yield</span><span class="o">.</span><span class="n">contents</span> <span class="n">person</span>
   <span class="k">end</span>
 <span class="k">end</span>
-</pre></div>
+</pre>
+</div>
+
 
 <p>Which could be used like so:</p>
 
-<pre lang="handlebars"><code>{{#list_people people}}
-  &lt;b&gt;{{name}}&lt;b&gt;&lt;br /&gt;
-  Age: {{age}}&lt;br /&gt;
-  Sex: {{sex}}&lt;br /&gt;
-{{/list_people}}
-</code></pre>
+
 
 <p>Block helpers can also contain an <code>{{else}}</code> statement, which, when used creates
 a second set of block contents (called <code>inverse</code>) which can be yielded to the output:</p>
 
-<div class="highlight"><pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:isFemale</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">person</span><span class="p">,</span><span class="o">&amp;</span><span class="n">block</span><span class="o">|</span>
+<div class="highlight">
+<pre><span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="ss">:isFemale</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">person</span><span class="p">,</span><span class="o">&amp;</span><span class="n">block</span><span class="o">|</span>
   <span class="k">if</span> <span class="n">person</span><span class="o">.</span><span class="n">sex</span> <span class="o">==</span> <span class="s1">'female'</span>
     <span class="n">block</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">contents</span>
   <span class="k">else</span>
     <span class="n">block</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">inverse</span>
   <span class="k">end</span>
 <span class="k">end</span>
-</pre></div>
+</pre>
+</div>
+
 
 <p>You can also register an existing method:</p>
 
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">isFemale</span><span class="p">(</span><span class="n">person</span><span class="p">)</span>
+<div class="highlight">
+<pre><span class="k">def</span> <span class="nf">isFemale</span><span class="p">(</span><span class="n">person</span><span class="p">)</span>
   <span class="k">if</span> <span class="n">person</span><span class="o">.</span><span class="n">sex</span> <span class="o">==</span> <span class="s1">'female'</span>
     <span class="k">yield</span><span class="o">.</span><span class="n">contents</span>
   <span class="k">else</span>
@@ -248,16 +251,31 @@ a second set of block contents (called <code>inverse</code>) which can be yielde
 <span class="k">end</span>
 
 <span class="no">FS</span><span class="o">.</span><span class="n">register_helper</span><span class="p">(</span><span class="nb">method</span><span class="p">(</span><span class="ss">:isFemale</span><span class="p">))</span>
-</pre></div>
+</pre>
+</div>
+
 
 <p>Which could be used like so:</p>
 
-<pre lang="handlebars"><code>{{#isFemale person}}
-  {{person.name}} is female.
-{{else}}
-  {{person.name}} is male.
-{{/isFemale}}
-</code></pre>
+
+
+<h3>Using Partials</h3>
+
+<p>Handlebars allows you to register a partial either as a function or a string template with 
+the engine before compiling, FlavourSaver retains this behaviour (with the notable exception
+of within Rails - see below).</p>
+
+<p>To register a partial you call <code>FlavourSaver.register_partial</code> with a name and a string:</p>
+
+<div class="highlight">
+<pre><span class="no">FlavourSaver</span><span class="o">.</span><span class="n">register_partial</span><span class="p">(</span><span class="ss">:my_partial</span><span class="p">,</span> <span class="s2">"{{this}} is a partial"</span><span class="p">)</span>
+</pre>
+</div>
+
+
+<p>You can then use this partial within your templates:</p>
+
+
 
 <h2>Using with Rails</h2>
 
@@ -275,17 +293,46 @@ variable.</p>
 
 <p>To access this variable you could create a simple helper method in <code>ApplicationHelpers</code>:</p>
 
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">current_user</span>
+<div class="highlight">
+<pre><span class="k">def</span> <span class="nf">current_user</span>
   <span class="vi">@current_user</span>
 <span class="k">end</span>
-</pre></div>
+</pre>
+</div>
+
 
 <p>Which would mean that you are able to access it in your template:</p>
 
-<pre lang="handlebars"><code>{{#if current_user}}
-  Welcome back, {{current_user.first_name}}!
-{{/if}}
-</code></pre>
+
+
+<h3>Special behaviour of Handlebars' partial syntax</h3>
+
+<p>In Handlebars.js all partial templates must be pre-registered with the engine before they are
+able to be used.  When running inside Rails FlavourSaver modifies this behaviour to use Rails'
+render partial helper:</p>
+
+
+
+<p>Will be translated into:</p>
+
+<div class="highlight">
+<pre><span class="n">render</span> <span class="ss">:partial</span> <span class="o">=&gt;</span> <span class="s1">'my_partial'</span>
+</pre>
+</div>
+
+
+<p>Handlebars allows you to send a context object into the partial, which sets the execution
+context of the partial.  In Rails this behaviour would be confusing and non-standard, so
+instead any argument passed to the partial is evaluated and passed to the partial's
+<code>:object</code> argument:</p>
+
+
+
+<div class="highlight">
+<pre><span class="n">render</span> <span class="ss">:partial</span> <span class="o">=&gt;</span> <span class="s1">'my_partial'</span><span class="p">,</span> <span class="ss">:object</span> <span class="o">=&gt;</span> <span class="n">my_context</span>
+</pre>
+</div>
+
 
 <h2>Contributing</h2>
 
@@ -296,6 +343,8 @@ variable.</p>
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create new Pull Request</li>
 </ol>
+</body></html>
+
         </section>
 
         <footer>
