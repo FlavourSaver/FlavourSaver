@@ -895,7 +895,7 @@ describe FlavourSaver do
       after  { FS.logger = nil }
       example do
         context.stub(:blah).and_return('whee')
-        log.should_receive(:debug).with('whee')
+        log.should_receive(:debug).with('FlavourSaver: whee')
         subject.should == ''
       end
     end

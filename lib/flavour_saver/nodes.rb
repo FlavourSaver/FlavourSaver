@@ -163,7 +163,7 @@ module FlavourSaver
 
   class PartialNode < TemplateItemNode
     value :name, String
-    child :context, Node
+    child :context, [Node]
     def to_s
       "{{>#{name}}}"
     end
