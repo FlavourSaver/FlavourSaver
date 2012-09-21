@@ -120,8 +120,14 @@ provided that the hash is the last argument.</li>
 
 <h3>#with</h3>
 
-<p>Yields it's argument into the context of the block contents:</p>
+<p>Yields its argument into the context of the block contents:</p>
 
+<div class="highlight">
+<pre>{{#with person}}
+  {{name}}
+{{/with}}
+</pre>
+</div>
 
 
 <h3>#each</h3>
@@ -129,6 +135,12 @@ provided that the hash is the last argument.</li>
 <p>Takes a single collection argument and yeilds the block's contents once 
 for each member of the collection:</p>
 
+<div class="highlight">
+<pre>{{#each people}}
+  {{name}}
+{{/each}}
+</pre>
+</div>
 
 
 <h3>#if</h3>
@@ -136,10 +148,24 @@ for each member of the collection:</p>
 <p>Takes a single argument and yields the contents of the block if that argument
 is truthy.</p>
 
+<div class="highlight">
+<pre>{{#if person}}
+  Hi {{person.name}}!
+{{/if}}
+</pre>
+</div>
 
 
 <p>It can also handle a special case <code>{{else}}</code> expression:</p>
 
+<div class="highlight">
+<pre>{{#if person}}
+  Hi {{person.name}}!
+{{else}}
+  Nobody to say hi to.
+{{/if}}
+</pre>
+</div>
 
 
 <h3>#unless</h3>
@@ -151,6 +177,12 @@ is truthy.</p>
 <p>In JavaScript <code>this</code> is a native keyword, in Ruby not-so-much. FlavourSaver's <code>this</code> helper
 returns <code>self</code>:</p>
 
+<div class="highlight">
+<pre>{{#each names}}
+  {{this}}
+{{/each}}
+</pre>
+</div>
 
 
 <h3>log</h3>
@@ -171,6 +203,10 @@ returns <code>self</code>:</p>
 
 <p>Now if you were to render the following template:</p>
 
+<div class="highlight">
+<pre><span class="nt">&lt;h1&gt;</span>Hello {{whom}}!<span class="nt">&lt;/h1&gt;</span>
+</pre>
+</div>
 
 
 <p>You would receive the following output:</p>
@@ -199,6 +235,12 @@ optional argument setting the context of the block execution:</p>
 
 <p>Which when called with the following template:</p>
 
+<div class="highlight">
+<pre>{{#three_times}}
+  hello
+{{/three_times}}
+</pre>
+</div>
 
 
 <p>would result in the following output:</p>
@@ -222,6 +264,14 @@ optional argument setting the context of the block execution:</p>
 
 <p>Which could be used like so:</p>
 
+<div class="highlight">
+<pre>{{#list_people people}}
+  <span class="nt">&lt;b&gt;</span>{{name}}<span class="nt">&lt;b&gt;&lt;br</span> <span class="nt">/&gt;</span>
+  Age: {{age}}<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+  Sex: {{sex}}<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+{{/list_people}}
+</pre>
+</div>
 
 
 <p>Block helpers can also contain an <code>{{else}}</code> statement, which, when used creates
@@ -257,6 +307,14 @@ a second set of block contents (called <code>inverse</code>) which can be yielde
 
 <p>Which could be used like so:</p>
 
+<div class="highlight">
+<pre>{{#isFemale person}}
+  {{person.name}} is female.
+{{else}}
+  {{person.name}} is male.
+{{/isFemale}}
+</pre>
+</div>
 
 
 <h3>Using Partials</h3>
@@ -275,6 +333,10 @@ of within Rails - see below).</p>
 
 <p>You can then use this partial within your templates:</p>
 
+<div class="highlight">
+<pre>{{#each people}}{{&gt; my_partial this}}{{/each}}
+</pre>
+</div>
 
 
 <h2>Using with Rails</h2>
@@ -303,6 +365,12 @@ variable.</p>
 
 <p>Which would mean that you are able to access it in your template:</p>
 
+<div class="highlight">
+<pre>{{#if current_user}}
+  Welcome back, {{current_user.first_name}}!
+{{/if}}
+</pre>
+</div>
 
 
 <h3>Special behaviour of Handlebars' partial syntax</h3>
@@ -311,6 +379,10 @@ variable.</p>
 able to be used.  When running inside Rails FlavourSaver modifies this behaviour to use Rails'
 render partial helper:</p>
 
+<div class="highlight">
+<pre>{{&gt; my_partial}}
+</pre>
+</div>
 
 
 <p>Will be translated into:</p>
@@ -326,6 +398,10 @@ context of the partial.  In Rails this behaviour would be confusing and non-stan
 instead any argument passed to the partial is evaluated and passed to the partial's
 <code>:object</code> argument:</p>
 
+<div class="highlight">
+<pre>{{&gt; my_partial my_context}}
+</pre>
+</div>
 
 
 <div class="highlight">

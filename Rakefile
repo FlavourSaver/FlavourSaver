@@ -9,7 +9,9 @@ task :pygmentize, [:file] => '/usr/local/bin/pygmentize' do |t,args|
   puts "Syntax highlighting #{args.file}"
   doc = Nokogiri::HTML(File.read(args.file))
   doc.search("//pre[@lang]").each do |pre|
-    pre.replace Albino.colorize(pre.text.rstrip, pre[:lang])
+    lang = pre[:lang]
+    lang = "html" if lang == 'handlebars'
+    pre.replace Albino.colorize(pre.text.rstrip, lang)
   end
   File.open(args.file, 'w'){|f| f << doc.to_s}
 end
