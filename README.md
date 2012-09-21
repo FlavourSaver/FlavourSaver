@@ -69,7 +69,7 @@ FlavourSaver implements the following helpers by default:
 
 ### #with
 
-Yields it's argument into the context of the block contents:
+Yields its argument into the context of the block contents:
 
 ```handlebars
 {{#with person}}
