@@ -10,10 +10,13 @@ require 'flavour_saver'
 describe FlavourSaver do
   let(:context) { stub(:context) }
   subject { FS.evaluate(template, context) }
+  after do
+    FS.reset_helpers
+    FS.reset_partials
+  end
 
   describe "basic context" do
     before { FS.register_helper(:link_to) { "<a>#{context}</a>" } }
-    after  { FS::Helpers.reset_helpers }
 
     describe 'most basic' do
       let(:template) { "{{foo}}" }
@@ -306,7 +309,6 @@ describe FlavourSaver do
 
       describe 'this keyword in helpers' do
         before { FS.register_helper(:foo) { |value| "bar #{value}" } }
-        after  { FS.reset_helpers }
 
         describe 'this keyword in arguments' do
           let(:template) { "{{#goodbyes}}{{foo this}}{{/goodbyes}}" }
@@ -449,7 +451,6 @@ describe FlavourSaver do
           "<a href='#{prefix}/#{url}'>#{text}</a>"
         end
       end
-      after { FS.reset_helpers }
 
       it 'renders correctly' do
         context.stub(:prefix).and_return('/root')
@@ -459,6 +460,443 @@ describe FlavourSaver do
         goodbyes[0].should_receive(:url).and_return('goodbye')
         context.stub(:goodbyes).and_return(goodbyes)
         subject.should == "<a href='/root/goodbye'>Goodbye</a>"
+      end
+    end
+
+    describe 'helper with complex lookup expression' do
+      let(:template) { "{{#goodbyes}}{{../name}}{{/goodbyes}}" }
+      before do
+        FS.register_helper(:goodbyes) do |&b|
+          ["Goodbye", "goodbye", "GOODBYE"].map do |bye|
+            "#{bye} #{b.call.contents}! "
+          end.join('')
+        end
+      end
+
+      it 'renders correctly' do
+        context.stub(:name).and_return('Alan')
+        subject.should == "Goodbye Alan! goodbye Alan! GOODBYE Alan! "
+      end
+    end
+
+    describe 'helper with complex lookup and nested template' do
+      let(:template) { "{{#goodbyes}}{{#link ../prefix}}{{text}}{{/link}}{{/goodbyes}}" }
+      before do
+        FS.register_helper(:link) do |prefix,&b|
+          "<a href='#{prefix}/#{url}'>#{b.call.contents}</a>"
+        end
+      end
+
+      it 'renders correctly' do
+        context.stub(:prefix).and_return('/root')
+        goodbye = stub(:goodbye)
+        goodbye.stub(:text).and_return('Goodbye')
+        goodbye.stub(:url).and_return('goodbye')
+        context.stub(:goodbyes).and_return([goodbye])
+        subject.should == "<a href='/root/goodbye'>Goodbye</a>"
+      end
+    end
+
+    describe 'block with deep nested complex lookup' do
+      let(:template) { "{{#outer}}Goodbye {{#inner}}cruel {{../../omg}}{{/inner}}{{/outer}}" }
+
+      example do
+        goodbye = stub(:goodbye)
+        goodbye.stub(:text).and_return('goodbye')
+        inner = stub(:inner)
+        inner.stub(:inner).and_return([goodbye])
+        context.stub(:omg).and_return('OMG!')
+        context.stub(:outer).and_return([inner])
+        subject.should == "Goodbye cruel OMG!"
+      end
+    end
+
+    describe 'block helper' do
+      let(:template) { "{{#goodbyes}}{{text}}! {{/goodbyes}}cruel {{world}}!" }
+      before do
+        FS.register_helper(:goodbyes) do |&block|
+          block.call.contents Struct.new(:text).new('GOODBYE')
+        end
+      end
+
+      example do
+        context.stub(:world).and_return('world')
+      end
+    end
+
+    describe 'block helper staying in the same context' do
+      let(:template) { "{{#form}}<p>{{name}}</p>{{/form}}" }
+      before do
+        FS.register_helper(:form) do |&block|
+          "<form>#{block.call.contents}</form>"
+        end
+      end
+
+      example do
+        context.stub(:name).and_return('Yehuda')
+        subject.should == "<form><p>Yehuda</p></form>"
+      end
+    end
+
+    describe 'block helper should have context in this' do
+      let(:template) { "<ul>{{#people}}<li>{{#link}}{{name}}{{/link}}</li>{{/people}}</ul>" }
+      before do 
+        FS.register_helper(:link) do |&block|
+          "<a href=\"/people/#{this.id}\">#{block.call.contents}</a>"
+        end
+      end
+      example do
+        person = Struct.new(:name, :id)
+        context.stub(:people).and_return([person.new('Alan', 1), person.new('Yehuda', 2)])
+        subject.should == "<ul><li><a href=\"/people/1\">Alan</a></li><li><a href=\"/people/2\">Yehuda</a></li></ul>"
+      end
+    end
+
+    describe 'block helper for undefined value' do
+      let(:template) { "{{#empty}}shoulnd't render{{/empty}}" }
+      example do
+        subject.should == ""
+      end
+    end
+
+    describe 'block helper passing a new context' do
+      let(:template) { "{{#form yehuda}}<p>{{name}}</p>{{/form}}" }
+      before do
+        FS.register_helper(:form) do |whom,&block|
+          "<form>#{block.call.contents whom}</form>"
+        end
+      end
+      example do
+        context.stub_chain(:yehuda,:name).and_return('Yehuda')
+        subject.should == "<form><p>Yehuda</p></form>"
+      end
+    end
+
+    describe 'block helper passing a complex path context' do
+      let(:template) { "{{#form yehuda/cat}}<p>{{name}}</p>{{/form}}" }
+      before do
+        FS.register_helper(:form) do |context,&block|
+          "<form>#{block.call.contents context}</form>"
+        end
+      end
+      example do
+        yehuda = stub(:yehuda)
+        yehuda.stub(:name).and_return('Yehuda')
+        yehuda.stub_chain(:cat,:name).and_return('Harold')
+        context.stub(:yehuda).and_return(yehuda)
+        subject.should == "<form><p>Harold</p></form>"
+      end
+    end
+
+    describe 'nested block helpers' do
+      let(:template) { "{{#form yehuda}}<p>{{name}}</p>{{#link}}Hello{{/link}}{{/form}}" }
+      before do
+        FS.register_helper(:link) do |&block|
+          "<a href='#{name}'>#{block.call.contents}</a>"
+        end
+        FS.register_helper(:form) do |context,&block|
+          "<form>#{block.call.contents context}</form>"
+        end
+      end
+      example do
+        context.stub_chain(:yehuda,:name).and_return('Yehuda')
+        subject.should == "<form><p>Yehuda</p><a href='Yehuda'>Hello</a></form>"
+      end
+    end
+
+    describe 'block inverted sections' do
+      let(:template) { "{{#people}}{{name}}{{^}}{{none}}{{/people}}" }
+      example do
+        context.stub(:none).and_return("No people")
+        subject.should == "No people"
+      end
+    end
+
+    describe 'block inverted sections with empty arrays' do
+      let(:template) { "{{#people}}{{name}}{{^}}{{none}}{{/people}}" }
+      example do
+        context.stub(:none).and_return('No people')
+        context.stub(:people).and_return([])
+        subject.should == "No people"
+      end
+    end
+
+    describe 'block helpers with inverted sections' do
+      let (:template) { "{{#list people}}{{name}}{{^}}<em>Nobody's here</em>{{/list}}" }
+      before do
+        FS.register_helper(:list) do |context,&block|
+          if context.any?
+            "<ul>" + 
+              context.map { |e| "<li>#{block.call.contents e}</li>" }.join('') +
+              "</ul>"
+          else
+            "<p>#{block.call.inverse}</p>"
+          end
+        end
+      end
+      
+      example 'an inverse wrapper is passed in as a new context' do
+        person = Struct.new(:name)
+        context.stub(:people).and_return([person.new('Alan'),person.new('Yehuda')])
+        subject.should == "<ul><li>Alan</li><li>Yehuda</li></ul>"
+      end
+
+      example 'an inverse wrapper can optionally be called' do
+        context.stub(:people).and_return([])
+        subject.should == "<p><em>Nobody's here</em></p>"
+      end
+
+      describe 'the context of an inverse is the parent of the block' do
+        let(:template) { "{{#list people}}Hello{{^}}{{message}}{{/list}}" }
+        example do
+          context.stub(:people).and_return([])
+          context.stub(:message).and_return("Nobody's here")
+          subject.should == "<p>Nobody&#x27;s here</p>"
+        end
+      end
+    end
+  end
+
+  describe 'partials' do
+    let(:template) { "Dudes: {{#dudes}}{{> dude}}{{/dudes}}" }
+    before do 
+      FS.register_partial(:dude, "{{name}} ({{url}}) ")
+    end
+    example do
+      person = Struct.new(:name, :url)
+      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      subject.should == "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
+    end
+  end
+
+  describe 'partials with context' do
+    let(:template) {"Dudes: {{>dude dudes}}"}
+    before do
+      FS.register_partial(:dude, "{{#this}}{{name}} ({{url}}) {{/this}}")
+    end
+    example "Partials can be passed a context" do
+      person = Struct.new(:name, :url)
+      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      subject.should == "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
+    end
+  end
+
+  describe 'partial in a partial' do
+    let(:template) {"Dudes: {{#dudes}}{{>dude}}{{/dudes}}"}
+    before do
+      FS.register_partial(:dude, "{{name}} {{>url}} ")
+      FS.register_partial(:url, "<a href='{{url}}'>{{url}}</a>")
+    end
+    example "Partials can be passed a context" do
+      person = Struct.new(:name, :url)
+      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      subject.should == "Dudes: Yehuda <a href='http://yehuda'>http://yehuda</a> Alan <a href='http://alan'>http://alan</a> "
+    end
+  end
+
+  describe 'rendering undefined partial throws an exception' do
+    let(:template) { "{{> whatever}}" }
+    example do
+      -> { subject }.should raise_error(FS::UnknownPartialException)
+    end
+  end
+
+  describe 'rendering a function partial' do
+    let(:template) { "Dudes: {{#dudes}}{{> dude}}{{/dudes}}" }
+    before do
+      FS.register_partial(:dude) do |context|
+        "#{context.name} (#{context.url}) "
+      end
+    end
+    example do
+      person = Struct.new(:name, :url)
+      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      subject.should == "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
+    end
+  end
+
+  describe 'a partial preceding a selector' do
+    let(:template) { "Dudes: {{>dude}} {{another_dude}}" }
+    before do
+      FS.register_partial(:dude, "{{name}}")
+    end
+    example do
+      context.stub(:name).and_return('Jeepers')
+      context.stub(:another_dude).and_return('Creepers')
+      subject.should == "Dudes: Jeepers Creepers"
+    end
+  end
+
+  describe 'partials with literal paths' do
+    let(:template) { "Dudes: {{> [dude]}}" }
+    before do
+      FS.register_partial(:dude, "{{name}}")
+    end
+    example do
+      context.stub(:name).and_return('Jeepers')
+      context.stub(:another_dude).and_return('Creepers')
+      subject.should == "Dudes: Jeepers"
+    end
+  end
+
+  describe 'string literal parameters' do
+
+    describe 'simple literals work' do
+      let(:template) { "Message: {{hello \"world\" 12 true false}}" }
+      before do
+        FS.register_helper(:hello) do |param,times,bool1,bool2|
+          times = "NaN" unless times.is_a? Fixnum
+          bool1 = "NaB" unless bool1 == true
+          bool2 = "NaB" unless bool2 == false
+          "Hello #{param} #{times} times: #{bool1} #{bool2}"
+        end
+      end
+      example do
+        subject.should == "Message: Hello world 12 times: true false"
+      end
+    end
+
+    describe 'using a quote in the middle of a parameter raises an error' do
+      let(:template) { "Message: {{hello wo\"rld\"}}" }
+      example do
+        -> { subject }.should raise_error
+      end
+    end
+
+    describe 'escaping a string is possible' do
+      let(:template) { 'Message: {{{hello "\"world\""}}}' }
+      before do
+        FS.register_helper(:hello) do |param|
+          "Hello #{param}"
+        end
+      end
+      example do
+        subject.should == 'Message: Hello \"world\"'
+      end
+    end
+
+    describe 'string work with ticks' do
+      let(:template) { 'Message: {{{hello "Alan\'s world"}}}' }
+      before do
+        FS.register_helper(:hello) do |param|
+          "Hello #{param}"
+        end
+      end
+      example do
+        subject.should == "Message: Hello Alan's world"
+      end
+    end
+
+  end
+
+  describe 'multi-params' do
+    describe 'simple multi-params work' do
+      let(:template) { "Message: {{goodbye cruel world}}" }
+      before { FS.register_helper(:goodbye) { |cruel,world| "Goodbye #{cruel} #{world}" } }
+      example do
+        context.stub(:cruel).and_return('cruel')
+        context.stub(:world).and_return('world')
+        subject.should == "Message: Goodbye cruel world"
+      end
+    end
+
+    describe 'block multi-params' do
+      let(:template) { "Message: {{#goodbye cruel world}}{{greeting}} {{adj}} {{noun}}{{/goodbye}}" }
+      before { FS.register_helper(:goodbye) { |adj,noun,&b| b.call.contents Struct.new(:greeting,:adj,:noun).new('Goodbye', adj, noun) } }
+      example do
+        context.stub(:cruel).and_return('cruel')
+        context.stub(:world).and_return('world')
+        subject.should == "Message: Goodbye cruel world"
+      end
+    end
+  end
+
+  describe 'built-in helpers' do
+    describe 'with' do
+      let(:template) { "{{#with person}}{{first}} {{last}}{{/with}}" }
+      example do
+        context.stub(:person).and_return(Struct.new(:first,:last).new('Alan','Johnson'))
+        subject.should == 'Alan Johnson'
+      end
+    end
+
+    describe 'if' do
+      let(:template) { "{{#if goodbye}}GOODBYE {{/if}}cruel {{world}}!" }
+
+      example 'if with boolean argument shows the contents when true' do
+        context.stub(:goodbye).and_return(true)
+        context.stub(:world).and_return('world')
+        subject.should == "GOODBYE cruel world!"
+      end
+
+      example 'if with string argument shows the contents with true' do
+        context.stub(:goodbye).and_return('dummy')
+        context.stub(:world).and_return('world')
+        subject.should == "GOODBYE cruel world!"
+      end
+
+      example 'if with boolean argument does not show the contents when false' do
+        context.stub(:goodbye).and_return(false)
+        context.stub(:world).and_return('world')
+        subject.should == "cruel world!"
+      end
+
+      example 'if with undefined does not show the contents' do
+        context.stub(:goodbye)
+        context.stub(:world).and_return('world')
+        subject.should == "cruel world!"
+      end
+
+      example 'if with non-empty array shows the contents' do
+        context.stub(:goodbye).and_return(['foo'])
+        context.stub(:world).and_return('world')
+        subject.should == "GOODBYE cruel world!"
+      end
+
+      example 'if with empty array does not show the contents' do
+        context.stub(:goodbye).and_return([])
+        context.stub(:world).and_return('world')
+        subject.should == "cruel world!"
+      end
+    end
+
+    describe '#each' do
+      let(:template) { "{{#each goodbyes}}{{text}}! {{/each}}cruel {{world}}!" }
+
+      example 'each with array iterates over the contents with non-empty' do
+        g = Struct.new(:text)
+        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        context.stub(:world).and_return('world')
+        subject.should == "goodbye! Goodbye! GOODBYE! cruel world!"
+      end
+
+      example 'each with array ignores the contents when empty' do
+        context.stub(:goodbyes).and_return([])
+        context.stub(:world).and_return('world')
+        subject.should == "cruel world!"
+      end
+    end
+
+    describe 'each with @index' do
+      let(:template) { "{{#each goodbyes}}{{@index}}. {{text}}! {{/each}}cruel {{world}}!" }
+
+      example 'the @index variable is used' do
+        g = Struct.new(:text)
+        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        context.stub(:world).and_return('world')
+        subject.should == "0. goodbye! 1. Goodbye! 2. GOODBYE! cruel world!"
+      end
+    end
+
+    describe 'log' do
+      let(:template) { "{{log blah}}" }
+      let(:log) { stub(:log) }
+      before { FS.logger = log }
+      after  { FS.logger = nil }
+      example do
+        context.stub(:blah).and_return('whee')
+        log.should_receive(:debug).with('whee')
+        subject.should == ''
       end
     end
   end

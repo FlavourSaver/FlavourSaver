@@ -7,6 +7,8 @@ module FlavourSaver
   autoload :Parser,         'flavour_saver/parser'
   autoload :Runtime,        'flavour_saver/runtime'
   autoload :Helpers,        'flavour_saver/helpers'
+  autoload :Partial,        'flavour_saver/partial'
+  autoload :RailsPartial,   'flavour_saver/rails_partial'
   autoload :Template,       'flavour_saver/template'
   autoload :NodeCollection, 'flavour_saver/node_collection'
 
@@ -24,6 +26,12 @@ module FlavourSaver
       ActionView::Template.register_template_handler(:hbs, handler)
       ActionView::Template.register_template_handler(:handlebars, handler)
     end
+
+    @default_logger = proc { Rails.logger }
+    @partial_handler = RailsPartial
+  else
+    @default_logger = proc { Logger.new }
+    @partial_handler = Partial
   end
 
   module_function
@@ -46,6 +54,22 @@ module FlavourSaver
 
   def reset_helpers
     Helpers.reset_helpers
+  end
+
+  def register_partial(name,content=nil,&block)
+    Partial.register_partial(name,content,&block)
+  end
+
+  def reset_partials
+    Partial.reset_partials
+  end
+
+  def logger
+    @logger || @default_logger.call
+  end
+
+  def logger=(logger)
+    @logger=logger
   end
 
   Tilt.register(Template, 'handlebars', 'hbs')

@@ -52,6 +52,14 @@ module FlavourSaver
       clause('expr')          { |e| ExpressionNode.new(e) }
       clause('expr_comment')  { |e| CommentNode.new(e) }
       clause('expr_safe')     { |e| SafeExpressionNode.new(e) }
+      clause('partial')       { |e| e }
+    end
+
+    production(:partial) do
+      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
+      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? argument WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1) }
+      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
+      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? argument WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1) }
     end
 
     production(:block_expression) do
@@ -63,6 +71,7 @@ module FlavourSaver
 
     production(:expr_else) do
       clause('EXPRST WHITE? ELSE WHITE? EXPRE') { |_,_,_,_,_| }
+      clause('EXPRST WHITE? HAT WHITE? EXPRE') { |_,_,_,_,_| }
     end
 
     production(:expr) do
@@ -113,10 +122,25 @@ module FlavourSaver
       clause('hash') { |e| [e] }
     end
 
-    nonempty_list(:argument_list, [:object_path, :string], :WHITE)
+    nonempty_list(:argument_list, :argument, :WHITE)
+
+    production(:argument) do
+      clause('object_path') { |e| e }
+      clause('string') { |e| e }
+      clause('number') { |e| e }
+      clause('boolean') { |e| e }
+    end
 
     production(:string) do
       clause('STRING') { |e| StringNode.new(e) }
+    end
+
+    production(:number) do
+      clause('NUMBER') { |n| NumberNode.new(n) }
+    end
+
+    production(:boolean) do
+      clause('BOOL') { |b| b ? TrueNode.new(true) : FalseNode.new(false) }
     end
 
     production(:hash) do
@@ -139,8 +163,17 @@ module FlavourSaver
     production(:object) do
       clause('IDENT') { |e| CallNode.new(e, []) }
       clause('LITERAL') { |e| LiteralCallNode.new(e, []) }
-      clause('DOT DOT FWSL IDENT') { |_,_,_,e| ParentCallNode.new(e, []) }
-      clause('DOT DOT FWSL LITERAL') { |_,_,_,e| ParentCallNode.new(e, []) }
+      clause('parent_call') { |e| e }
+    end
+
+    production(:parent_call) do
+      clause('backtrack IDENT') { |i,e| ParentCallNode.new(e,[],i) }
+      clause('backtrack LITERAL') { |i,e| ParentCallNode.new(e,[],i) }
+    end
+
+    production(:backtrack) do
+      clause('DOT DOT FWSL') { |_,_,_| 1 }
+      clause('backtrack DOT DOT FWSL') { |i,_,_,_| i += 1 }
     end
 
     finalize

@@ -62,7 +62,13 @@ module FlavourSaver
         evaluate_block(node).to_s
       when OutputNode
         node.value
-      when StringNode
+      when NumberNode
+        if node.value =~ /\./
+          node.value.to_f
+        else
+          node.value.to_i
+        end
+      when ValueNode
         node.value
       when SafeExpressionNode
         evaluate_expression(node).to_s
@@ -77,6 +83,8 @@ module FlavourSaver
         node
       when CommentNode
         ''
+      when PartialNode
+        evaluate_partial(node)
       else
         raise UnknownNodeTypeException, "Don't know how to deal with a node of type #{node.class.to_s.inspect}."
       end
@@ -91,11 +99,27 @@ module FlavourSaver
       !!@parent
     end
 
+    def evaluate_partial(node)
+      _context = context
+      _context = evaluate_argument(node.context) if node.context
+      if defined?(::Rails) 
+        context.send(:render, :partial => node.name, :object => _context)
+      else
+        partial = Partial.fetch(node.name)
+        if partial.respond_to? :call
+          partial.call(_context)
+        else
+          create_child_runtime(partial).to_s(_context)
+        end
+      end
+    end
+
     def evaluate_call(call, context=context, &block)
       context = Helpers.decorate_with(context,@helpers,@locals) unless context.is_a? Helpers::Decorator
       case call
       when ParentCallNode
-        parent.evaluate_call(call.to_callnode,&block)
+        depth = call.depth
+        (2..depth).inject(parent) { |p| p.parent }.evaluate_call(call.to_callnode,&block)
       when LiteralCallNode
         result = context.send(:[], call.name)
         result = result.call(*call.arguments.map { |a| evaluate_argument(a) },&block) if result.respond_to? :call
@@ -202,6 +226,10 @@ module FlavourSaver
 
       def rendered?
         @render_count > 0 ? @render_count : false
+      end
+
+      def rendered!
+        @render_count += 1
       end
     end
 

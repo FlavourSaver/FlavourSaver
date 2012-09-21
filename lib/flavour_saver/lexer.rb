@@ -33,6 +33,22 @@ module FlavourSaver
       :AT
     end
 
+    rule />/, :expression do
+      :GT
+    end
+
+    rule /([1-9][0-9]*(\.[0-9]+)?)/, :expression do |n|
+      [ :NUMBER, n ]
+    end
+
+    rule /true/, :expression do |i|
+      [ :BOOL, true ]
+    end
+
+    rule /false/, :expression do |i|
+      [ :BOOL, false ]
+    end
+
     rule /\!/, :expression do
       push_state :comment
       :BANG
@@ -63,7 +79,7 @@ module FlavourSaver
       push_state :string
     end
     
-    rule /([^"]+)/, :string do |str|
+    rule /(\\"|[^"])*/, :string do |str|
       [ :STRING, str ]
     end
 

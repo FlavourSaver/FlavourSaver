@@ -27,9 +27,7 @@ module FlavourSaver
     end
   end
 
-  class StringNode < Node
-    value :value, String
-
+  class ValueNode < Node
     def to_s
       value.inspect
     end
@@ -37,6 +35,25 @@ module FlavourSaver
     def inspect
       value.inspect
     end
+  end
+
+  class StringNode < ValueNode
+    value :value, String
+  end
+
+  class NumberNode < ValueNode
+    value :value, String
+  end
+
+  class BooleanNode < ValueNode
+  end
+
+  class TrueNode < BooleanNode
+    value :value, TrueClass
+  end
+
+  class FalseNode < BooleanNode
+    value :value, FalseClass
   end
 
   class CallNode < Node
@@ -78,11 +95,13 @@ module FlavourSaver
   end
 
   class ParentCallNode < CallNode
+    value :depth, Fixnum
+
     def to_callnode
       CallNode.new(name,arguments)
     end
     def to_s
-      "../#{super}"
+      "#{'../' * depth}#{super}"
     end
   end
 
@@ -139,6 +158,14 @@ module FlavourSaver
     value :comment, String
     def to_s
       "{{! #{comment.strip}}}"
+    end
+  end
+
+  class PartialNode < TemplateItemNode
+    value :name, String
+    child :context, Node
+    def to_s
+      "{{>#{name}}}"
     end
   end
 end

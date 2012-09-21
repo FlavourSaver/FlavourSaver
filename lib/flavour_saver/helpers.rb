@@ -8,12 +8,18 @@ module FlavourSaver
       end
 
       def each(collection)
+        r = []
+        count = 0
         collection.each do |element|
-          yield.contents element
+          r << yield.contents(element, 'index' => count)
+          count += 1
         end
+        yield.rendered!
+        r.join ''
       end
 
       def if(truthy)
+        truthy = false if truthy.respond_to?(:size) && (truthy.size == 0)
         if truthy
           yield.contents
         else
@@ -28,35 +34,34 @@ module FlavourSaver
       def this
         @source || self
       end
+
+      def log(message)
+        FS.logger.debug("FlavourSaver: #{message}")
+        ''
+      end
     end
 
     class Decorator < Defaults
 
       def initialize(locals, source)
-        @locals = locals
         @source = source
+        mixin = Module.new do
+          locals.each do |name,impl|
+            define_method name, &impl
+          end
+        end
+        extend(mixin)
       end
 
       def respond_to?(name)
-        @locals.keys.member?(name) || @source.respond_to?(name)
+        super || @source.respond_to?(name)
       end
 
       def method_missing(name,*args,&b)
-        if @locals[name]
-          call_local(name, *args, &b)
-        else 
-          @source.send(name, *args, &b)
-        end
-      end
-
-      private
-
-      def call_local(name,*args,&b)
-        if @locals[name].respond_to?(:call)
-          @locals[name].call(*args, &b)
-        else
-          @locals[name]
-        end
+        # I would rather have it raise a NameError, but Moustache
+        # compatibility requires that missing helpers return 
+        # nothing. A good place for bugs to hide.
+        @source.send(name, *args, &b) if @source.respond_to? name
       end
     end
 
