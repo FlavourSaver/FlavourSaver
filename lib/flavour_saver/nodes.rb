@@ -163,7 +163,13 @@ module FlavourSaver
 
   class PartialNode < TemplateItemNode
     value :name, String
-    child :context, [Node]
+    child :context_call, [CallNode]
+    child :context_value, ValueNode
+
+    def context
+      context_call.any? ? context_call : context_value
+    end
+
     def to_s
       "{{>#{name}}}"
     end

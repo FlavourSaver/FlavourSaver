@@ -57,9 +57,11 @@ module FlavourSaver
 
     production(:partial) do
       clause('EXPRST WHITE? GT WHITE? IDENT WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
-      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? argument WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1) }
+      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? call WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1,nil) }
+      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? lit WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,[],e1) }
       clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
-      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? argument WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1) }
+      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? call WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1,nil) }
+      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? lit WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,[],e1) }
     end
 
     production(:block_expression) do
@@ -122,10 +124,9 @@ module FlavourSaver
       clause('hash') { |e| [e] }
     end
 
-    nonempty_list(:argument_list, :argument, :WHITE)
+    nonempty_list(:argument_list, [:object_path,:lit], :WHITE)
 
-    production(:argument) do
-      clause('object_path') { |e| e }
+    production(:lit) do
       clause('string') { |e| e }
       clause('number') { |e| e }
       clause('boolean') { |e| e }
