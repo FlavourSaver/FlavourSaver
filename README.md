@@ -43,6 +43,7 @@ FlavourSaver is in its infancy, your pull requests are greatly appreciated.
 
 Currently supported:
 
+  - Full support of Moustache and Handlebars templates.
   - Expressions:
     - with object-paths (`{{some.method.chain}}`)
     - containing object-literals (`{{object.['index'].method}}`):
@@ -58,8 +59,8 @@ Currently supported:
     - Expressions wrapped in triple-stashes are not HTML escaped (`{{{an expression}}}`)
   - Block expressions
     - Simple API for adding block helpers.
-
-Coming soon:
+    - Block expressions with inverse blocks
+    - Inverse blocks
   - Partials
 
 ## Helpers
@@ -122,6 +123,12 @@ returns `self`:
   {{this}}
 {{/each}}
 ```
+
+### log
+
+Writes log output.  The destination can be changed by assigning a `Logger` instance to
+`FlavourSaver.logger=`.  On Rails `FlavourSaver.logger` automatically points at
+`Rails.logger`.
 
 ### Adding additional helpers
 
@@ -229,6 +236,24 @@ Which could be used like so:
 {{/isFemale}}
 ```
 
+### Using Partials
+
+Handlebars allows you to register a partial either as a function or a string template with 
+the engine before compiling, FlavourSaver retains this behaviour (with the notable exception
+of within Rails - see below).
+
+To register a partial you call `FlavourSaver.register_partial` with a name and a string:
+
+```ruby
+FlavourSaver.register_partial(:my_partial, "{{this}} is a partial")
+```
+
+You can then use this partial within your templates:
+
+```handlebars
+{{#each people}}{{> my_partial this}}{{/each}}
+```
+
 ## Using with Rails
 
 One potential gotcha of using FlavourSaver with Rails is that FlavourSaver doesn't let you
@@ -257,6 +282,35 @@ Which would mean that you are able to access it in your template:
 {{#if current_user}}
   Welcome back, {{current_user.first_name}}!
 {{/if}}
+```
+
+### Special behaviour of Handlebars' partial syntax
+
+In Handlebars.js all partial templates must be pre-registered with the engine before they are
+able to be used.  When running inside Rails FlavourSaver modifies this behaviour to use Rails'
+render partial helper:
+
+```handlebars
+{{> my_partial}}
+```
+
+Will be translated into:
+
+```ruby
+render :partial => 'my_partial'
+```
+
+Handlebars allows you to send a context object into the partial, which sets the execution
+context of the partial.  In Rails this behaviour would be confusing and non-standard, so
+instead any argument passed to the partial is evaluated and passed to the partial's
+`:object` argument:
+
+```handlebars
+{{> my_partial my_context}}
+```
+
+```ruby
+render :partial => 'my_partial', :object => my_context
 ```
 
 ## Contributing
