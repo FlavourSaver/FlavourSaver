@@ -2,6 +2,8 @@
 
 [Handlebars.js](http://handlebarsjs.com) without the `.js`
 
+[![Build Status](https://travis-ci.org/jamesotron/FlavourSaver.png)](https://travis-ci.org/jamesotron/FlavourSaver)
+
 ## WAT?
 
 FlavourSaver is a ruby-based implementation of the [Handlebars.js](http://handlebars.js)
