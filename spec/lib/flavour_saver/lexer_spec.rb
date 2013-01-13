@@ -175,5 +175,13 @@ describe FlavourSaver::Lexer do
         subject.map(&:type).should == [:OUT,:EOS]
       end
     end
+
+    describe 'Single curly bracket' do
+      subject { FlavourSaver::Lexer.lex "{" }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [:OUT,:EOS]
+      end
+    end
   end
 end

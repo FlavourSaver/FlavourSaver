@@ -120,7 +120,7 @@ module FlavourSaver
       :EXPRE
     end
 
-    rule /[^{{]+/, :default do |output|
+    rule /.*?(?={{|\z)/m, :default do |output|
       [ :OUT, output ]
     end
   end
