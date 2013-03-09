@@ -4,7 +4,7 @@
 
 [![Build Status](https://travis-ci.org/jamesotron/FlavourSaver.png)](https://travis-ci.org/jamesotron/FlavourSaver)
 [![Dependency Status](https://gemnasium.com/jamesotron/FlavourSaver.png)](https://gemnasium.com/jamesotron/FlavourSaver)
-[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/jamesotron/FlavourSaver)
+[![Code Climate](https://codeclimate.com/github/jamesotron/FlavourSaver.png)](https://codeclimate.com/github/jamesotron/FlavourSaver)
 
 ## WAT?
 
