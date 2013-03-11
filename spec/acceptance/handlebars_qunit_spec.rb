@@ -177,7 +177,11 @@ describe FlavourSaver do
 
         it "should be escaped" do
           context.stub(:awesome).and_return("&\"'`\\<>")
-          subject.should == "&amp;&quot;&#x27;&#x60;\\&lt;&gt;"
+          if RUBY_VERSION == '2.0.0'
+            subject.should == "&amp;&quot;&#39;&#x60;\\&lt;&gt;"
+          else
+            subject.should == "&amp;&quot;&#x27;&#x60;\\&lt;&gt;"
+          end
         end
       end
 
@@ -211,7 +215,7 @@ describe FlavourSaver do
 
     describe 'paths with hyphens' do
       describe '{{foo-bar}}' do
-        let(:template) { "{{foo-bar}}" } 
+        let(:template) { "{{foo-bar}}" }
 
         it 'paths can contain hyphens (-)' do
           context.should_receive(:[]).with('foo-bar').and_return('baz')
@@ -220,7 +224,7 @@ describe FlavourSaver do
       end
 
       describe '{{foo.foo-bar}}' do
-        let(:template) { "{{foo.foo-bar}}" } 
+        let(:template) { "{{foo.foo-bar}}" }
 
         it 'paths can contain hyphens (-)' do
           context.stub_chain(:foo, :[]).with('foo-bar').and_return(proc { 'baz' })
@@ -229,7 +233,7 @@ describe FlavourSaver do
       end
 
       describe '{{foo/foo-bar}}' do
-        let(:template) { "{{foo/foo-bar}}" } 
+        let(:template) { "{{foo/foo-bar}}" }
 
         it 'paths can contain hyphens (-)' do
           context.stub_chain(:foo, :[]).with('foo-bar').and_return('baz')
@@ -237,7 +241,7 @@ describe FlavourSaver do
         end
       end
 
-      describe 'nested paths' do 
+      describe 'nested paths' do
         let(:template) {"Goodbye {{alan/expression}} world!"}
 
         it 'access nested object' do
@@ -281,7 +285,7 @@ describe FlavourSaver do
       end
 
       describe '"this" keyword' do
-        describe 'in a block' do 
+        describe 'in a block' do
           let(:template) { "{{#goodbyes}}{{this}}{{/goodbyes}}" }
 
           it 'evaluates to the current context' do
@@ -540,7 +544,7 @@ describe FlavourSaver do
 
     describe 'block helper should have context in this' do
       let(:template) { "<ul>{{#people}}<li>{{#link}}{{name}}{{/link}}</li>{{/people}}</ul>" }
-      before do 
+      before do
         FS.register_helper(:link) do |&block|
           "<a href=\"/people/#{this.id}\">#{block.call.contents}</a>"
         end
@@ -626,7 +630,7 @@ describe FlavourSaver do
       before do
         FS.register_helper(:list) do |context,&block|
           if context.any?
-            "<ul>" + 
+            "<ul>" +
               context.map { |e| "<li>#{block.call.contents e}</li>" }.join('') +
               "</ul>"
           else
@@ -634,7 +638,7 @@ describe FlavourSaver do
           end
         end
       end
-      
+
       example 'an inverse wrapper is passed in as a new context' do
         person = Struct.new(:name)
         context.stub(:people).and_return([person.new('Alan'),person.new('Yehuda')])
@@ -651,7 +655,11 @@ describe FlavourSaver do
         example do
           context.stub(:people).and_return([])
           context.stub(:message).and_return("Nobody's here")
-          subject.should == "<p>Nobody&#x27;s here</p>"
+          if RUBY_VERSION == '2.0.0'
+            subject.should == "<p>Nobody&#39;s here</p>"
+          else
+            subject.should == "<p>Nobody&#x27;s here</p>"
+          end
         end
       end
     end
@@ -659,7 +667,7 @@ describe FlavourSaver do
 
   describe 'partials' do
     let(:template) { "Dudes: {{#dudes}}{{> dude}}{{/dudes}}" }
-    before do 
+    before do
       FS.register_partial(:dude, "{{name}} ({{url}}) ")
     end
     example do
