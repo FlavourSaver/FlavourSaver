@@ -23,5 +23,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'activesupport'
 
   gem.add_dependency 'rltk', '~> 2.2.0'
-  gem.add_dependency 'tilt', '~> 1.3.3'
+  gem.add_dependency 'tilt'
 end
