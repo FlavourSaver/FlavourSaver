@@ -15,6 +15,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = FlavourSaver::VERSION
 
+  gem.add_development_dependency 'rake'
   gem.add_development_dependency 'guard-rspec'
   gem.add_development_dependency 'rspec-core'
   gem.add_development_dependency 'rspec-mocks'
