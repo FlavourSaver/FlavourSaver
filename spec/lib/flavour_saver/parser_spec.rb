@@ -10,7 +10,7 @@ describe FlavourSaver::Parser do
 
   describe 'HTML template' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('<html><h1>Hello world!</h1></html>')) }
-    
+
     it 'is an output node' do
       items.first.should be_a(FlavourSaver::OutputNode)
     end
@@ -162,6 +162,18 @@ describe FlavourSaver::Parser do
       items.first.method.first.name.should == 'foo'
       items.first.method.first.arguments.first.should be_a(Hash)
       items.first.method.first.arguments.first.should == { :bar => FlavourSaver::StringNode.new('baz'), :fred => FlavourSaver::StringNode.new('wilma') }
+    end
+  end
+
+  describe '{{foo "bar" fred="wilma"}}' do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{foo "bar" fred="wilma"}}')) }
+    it 'calls the method "foo" with the "bar" and {:fred => "wilma"} as arguments' do
+      items.first.method.first.should be_a(FlavourSaver::CallNode)
+      items.first.method.first.name.should == 'foo'
+      items.first.method.first.arguments.first.should be_a(FlabourSaver::StringNode)
+      items.first.method.first.arguments.first.should == 'bar'
+      items.first.method.first.arguments.last.should be_a(Hash)
+      items.first.method.first.arguments.last.should == { :fred => FlavourSaver::StringNode.new('wilma') }
     end
   end
 
