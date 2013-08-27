@@ -10,7 +10,7 @@ describe FlavourSaver::Parser do
 
   describe 'HTML template' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('<html><h1>Hello world!</h1></html>')) }
-    
+
     it 'is an output node' do
       items.first.should be_a(FlavourSaver::OutputNode)
     end
