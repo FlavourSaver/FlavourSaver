@@ -3,7 +3,7 @@ require File.expand_path('../lib/flavour_saver/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["James Harton"]
-  gem.email         = ["jamesotron@gmail.com"]
+  gem.email         = ["james@resistor.io"]
   gem.description   = %q{FlavourSaver is a pure-ruby implimentation of the Handlebars templating language}
   gem.summary       = %q{Handlebars.js without the .js}
   gem.homepage      = "http://jamesotron.github.com/FlavourSaver/"

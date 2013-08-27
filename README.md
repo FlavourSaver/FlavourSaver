@@ -16,7 +16,7 @@ Please use it, break it, and send issues/PR's for improvement.
 
 ## License
 
-FlavourSaver is Copyright (c) 2012 Sociable Limited and licensed under the terms
+FlavourSaver is Copyright (c) 2013 Resistor Limited and licensed under the terms
 of the MIT Public License (see the LICENSE file included with this distribution
 for more details).
 
