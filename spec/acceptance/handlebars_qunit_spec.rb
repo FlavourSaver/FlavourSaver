@@ -8,7 +8,7 @@ ActiveSupport::SafeBuffer
 require 'flavour_saver'
 
 describe FlavourSaver do
-  let(:context) { stub(:context) }
+  let(:context) { double(:context) }
   subject { FS.evaluate(template, context) }
   after do
     FS.reset_helpers
@@ -263,7 +263,7 @@ describe FlavourSaver do
         let(:template) { "Goodbye {{[@alan]/expression}} world!" }
 
         it 'literal paths can be used' do
-          alan = stub(:alan)
+          alan = double(:alan)
           context.should_receive(:[]).with('@alan').and_return(alan)
           alan.should_receive(:expression).and_return('beautiful')
           subject.should == 'Goodbye beautiful world!'
@@ -299,11 +299,11 @@ describe FlavourSaver do
 
           it 'evaluates in more complex paths' do
             hellos = []
-            hellos << stub(:hello)
+            hellos << double(:hello)
             hellos[0].should_receive(:text).and_return('hello')
-            hellos << stub(:Hello)
+            hellos << double(:Hello)
             hellos[1].should_receive(:text).and_return('Hello')
-            hellos << stub(:HELLO)
+            hellos << double(:HELLO)
             hellos[2].should_receive(:text).and_return('HELLO')
             context.stub(:hellos).and_return(hellos)
             subject.should == "helloHelloHELLO"
@@ -328,11 +328,11 @@ describe FlavourSaver do
 
           it 'evaluates to current context' do
             hellos = []
-            hellos << stub(:hello)
+            hellos << double(:hello)
             hellos[0].should_receive(:text).and_return('hello')
-            hellos << stub(:Hello)
+            hellos << double(:Hello)
             hellos[1].should_receive(:text).and_return('Hello')
-            hellos << stub(:HELLO)
+            hellos << double(:HELLO)
             hellos[2].should_receive(:text).and_return('HELLO')
             context.stub(:hellos).and_return(hellos)
             subject.should == "bar hellobar Hellobar HELLO"
@@ -372,11 +372,11 @@ describe FlavourSaver do
 
     it 'arrays iterate the contents with non-empty' do
       goodbyes = []
-      goodbyes << stub(:goodbye)
+      goodbyes << double(:goodbye)
       goodbyes[0].should_receive(:text).and_return('goodbye')
-      goodbyes << stub(:Goodbye)
+      goodbyes << double(:Goodbye)
       goodbyes[1].should_receive(:text).and_return('Goodbye')
-      goodbyes << stub(:GOODBYE)
+      goodbyes << double(:GOODBYE)
       goodbyes[2].should_receive(:text).and_return('GOODBYE')
       context.stub(:goodbyes).and_return(goodbyes)
       context.stub(:world).and_return('world')
@@ -394,11 +394,11 @@ describe FlavourSaver do
 
       it 'the @index variable is used' do
         goodbyes = []
-        goodbyes << stub(:goodbye)
+        goodbyes << double(:goodbye)
         goodbyes[0].should_receive(:text).and_return('goodbye')
-        goodbyes << stub(:Goodbye)
+        goodbyes << double(:Goodbye)
         goodbyes[1].should_receive(:text).and_return('Goodbye')
-        goodbyes << stub(:GOODBYE)
+        goodbyes << double(:GOODBYE)
         goodbyes[2].should_receive(:text).and_return('GOODBYE')
         context.stub(:goodbyes).and_return(goodbyes)
         context.stub(:world).and_return('world')
@@ -411,11 +411,11 @@ describe FlavourSaver do
 
       it 'arrays iterate the contents with non-empty' do
         goodbyes = []
-        goodbyes << stub(:goodbye)
+        goodbyes << double(:goodbye)
         goodbyes[0].stub(:text).and_return('goodbye')
-        goodbyes << stub(:Goodbye)
+        goodbyes << double(:Goodbye)
         goodbyes[1].stub(:text).and_return('Goodbye')
-        goodbyes << stub(:GOODBYE)
+        goodbyes << double(:GOODBYE)
         goodbyes[2].stub(:text).and_return('GOODBYE')
         context.stub(:goodbyes).and_return(goodbyes)
         context.stub(:world).and_return('world')
@@ -437,11 +437,11 @@ describe FlavourSaver do
       it 'templates can access variables in contexts up the stack with relative path syntax' do
         context.stub(:name).and_return('Alan')
         goodbyes = []
-        goodbyes << stub(:goodbye)
+        goodbyes << double(:goodbye)
         goodbyes[0].should_receive(:text).and_return('goodbye')
-        goodbyes << stub(:Goodbye)
+        goodbyes << double(:Goodbye)
         goodbyes[1].should_receive(:text).and_return('Goodbye')
-        goodbyes << stub(:GOODBYE)
+        goodbyes << double(:GOODBYE)
         goodbyes[2].should_receive(:text).and_return('GOODBYE')
         context.stub(:goodbyes).and_return(goodbyes)
         subject.should == "goodbye cruel Alan! Goodbye cruel Alan! GOODBYE cruel Alan! "
@@ -459,7 +459,7 @@ describe FlavourSaver do
       it 'renders correctly' do
         context.stub(:prefix).and_return('/root')
         goodbyes = []
-        goodbyes << stub(:Goodbye)
+        goodbyes << double(:Goodbye)
         goodbyes[0].should_receive(:text).and_return('Goodbye')
         goodbyes[0].should_receive(:url).and_return('goodbye')
         context.stub(:goodbyes).and_return(goodbyes)
@@ -493,7 +493,7 @@ describe FlavourSaver do
 
       it 'renders correctly' do
         context.stub(:prefix).and_return('/root')
-        goodbye = stub(:goodbye)
+        goodbye = double(:goodbye)
         goodbye.stub(:text).and_return('Goodbye')
         goodbye.stub(:url).and_return('goodbye')
         context.stub(:goodbyes).and_return([goodbye])
@@ -505,9 +505,9 @@ describe FlavourSaver do
       let(:template) { "{{#outer}}Goodbye {{#inner}}cruel {{../../omg}}{{/inner}}{{/outer}}" }
 
       example do
-        goodbye = stub(:goodbye)
+        goodbye = double(:goodbye)
         goodbye.stub(:text).and_return('goodbye')
-        inner = stub(:inner)
+        inner = double(:inner)
         inner.stub(:inner).and_return([goodbye])
         context.stub(:omg).and_return('OMG!')
         context.stub(:outer).and_return([inner])
@@ -584,7 +584,7 @@ describe FlavourSaver do
         end
       end
       example do
-        yehuda = stub(:yehuda)
+        yehuda = double(:yehuda)
         yehuda.stub(:name).and_return('Yehuda')
         yehuda.stub_chain(:cat,:name).and_return('Harold')
         context.stub(:yehuda).and_return(yehuda)
@@ -898,7 +898,7 @@ describe FlavourSaver do
 
     describe 'log' do
       let(:template) { "{{log blah}}" }
-      let(:log) { stub(:log) }
+      let(:log) { double(:log) }
       before { FS.logger = log }
       after  { FS.logger = nil }
       example do

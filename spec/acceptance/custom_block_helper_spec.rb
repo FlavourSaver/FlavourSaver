@@ -4,7 +4,7 @@ require 'flavour_saver'
 describe 'Fixture: custom_block_helper.hbs' do
   subject { Tilt.new(template).render(context).gsub(/[\s\r\n]+/, ' ').strip }
   let(:template) { File.expand_path('../../fixtures/custom_block_helper.hbs', __FILE__) }
-  let(:context)  { stub(:context) }
+  let(:context)  { double(:context) }
 
   before(:each) do
     FlavourSaver::Helpers.reset_helpers

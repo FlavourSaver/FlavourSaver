@@ -4,7 +4,7 @@ describe FlavourSaver::Runtime do
   let(:template) { '' }
   let(:tokens)   { FlavourSaver.lex(template) }
   let(:ast)      { FlavourSaver.parse(tokens) }
-  let(:context)  { stub(:context) }
+  let(:context)  { double(:context) }
   subject        { FlavourSaver::Runtime.new(ast, context) }
 
   describe '#evaluate_node' do
@@ -111,7 +111,7 @@ describe FlavourSaver::Runtime do
     end
 
     describe 'when called with an object path' do
-      let(:template) { "{{hello.world}}" } 
+      let(:template) { "{{hello.world}}" }
 
       it 'calls world on the result of hello' do
         context.stub_chain(:hello, :world).and_return('hello world')
@@ -129,12 +129,12 @@ describe FlavourSaver::Runtime do
     end
 
     describe 'when called with an object path containing a literal' do
-      let (:template) { "{{hello.[WAT].world}}" } 
-      
+      let (:template) { "{{hello.[WAT].world}}" }
+
       it 'indexes the result of hello and calls world on it' do
-        world = stub(:world)
+        world = double(:world)
         world.should_receive(:world).and_return('vr00m')
-        hash = stub(:hash)
+        hash = double(:hash)
         hash.should_receive(:[]).with('WAT').and_return(world)
         context.should_receive(:hello).and_return(hash)
         subject.evaluate_expression(expr).should == 'vr00m'
