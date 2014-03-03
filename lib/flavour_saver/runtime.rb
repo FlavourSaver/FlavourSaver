@@ -181,7 +181,7 @@ module FlavourSaver
 
         # Otherwise it behaves as an implicit "if"
         elsif result
-          result = block_runtime.contents
+          result = block_runtime.contents result
         else
           if block_runtime.has_inverse?
             result = block_runtime.inverse
