@@ -10,8 +10,8 @@ describe FlavourSaver do
     FS.reset_partials
   end
 
-  describe "segment literal array access" do
-    let(:template) { "{{foos.[1].bar}}" }
+  describe 'segment literal array access' do
+    let(:template) { '{{foos.[1].bar}}' }
 
     it 'returns "two"' do
       foos = []
