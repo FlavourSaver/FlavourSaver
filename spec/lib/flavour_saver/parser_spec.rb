@@ -249,7 +249,7 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{#foo}}\n{{/foo}}")) }
 
     it "doesn't throw a NotInLanguage exception" do
-      -> { subject }.should_not raise_error(RLTK::NotInLanguage)
+      -> { subject }.should_not raise_error
     end
   end
 

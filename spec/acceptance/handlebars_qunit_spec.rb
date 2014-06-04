@@ -22,7 +22,7 @@ describe FlavourSaver do
       let(:template) { "{{foo}}" }
 
       it 'returns "foo"' do
-        context.stub!(:foo).and_return('foo')
+        context.stub(:foo).and_return('foo')
         subject.should == 'foo'
       end
     end
