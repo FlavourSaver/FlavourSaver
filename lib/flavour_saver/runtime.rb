@@ -5,6 +5,7 @@ module FlavourSaver
   UnknownContextException           = Class.new(StandardError)
   InappropriateUseOfElseException   = Class.new(StandardError)
   UndefinedPrivateVariableException = Class.new(StandardError)
+  UnknownHelperException            = Class.new(RuntimeError)
   class Runtime
 
     attr_accessor :context, :parent, :ast
@@ -127,7 +128,8 @@ module FlavourSaver
       when LocalVarNode
         result = private_variable_get(call.name)
       else
-        context.send(call.name, *call.arguments.map { |a| evaluate_argument(a) }, &block)
+        raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}." unless context.respond_to? call.name
+        context.public_send(call.name, *call.arguments.map { |a| evaluate_argument(a) }, &block)
       end
     end
 
