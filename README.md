@@ -9,7 +9,7 @@
 ## WAT?
 
 FlavourSaver is a ruby-based implementation of the [Handlebars.js](http://handlebars.js)
-templating language. FlavourSaver supports Handlebars template rendering natively on 
+templating language. FlavourSaver supports Handlebars template rendering natively on
 Rails and on other frameworks (such as Sinatra) via Tilt.
 
 Please use it, break it, and send issues/PR's for improvement.
@@ -38,7 +38,7 @@ Or install it yourself as:
 
 FlavourSaver provides an interface to the amazing
 [Tilt](https://github.com/rtomayko/tilt) templating library, meaning that it
-should work with anything that has Tilt support (Sinatra, etc) and has a 
+should work with anything that has Tilt support (Sinatra, etc) and has a
 native Rails template handler.
 
 ## Status
@@ -47,7 +47,7 @@ FlavourSaver is in its infancy, your pull requests are greatly appreciated.
 
 Currently supported:
 
-  - Full support of Moustache and Handlebars templates.
+  - Full support of Mustache and Handlebars templates.
   - Expressions:
     - with object-paths (`{{some.method.chain}}`)
     - containing object-literals (`{{object.['index'].method}}`):
@@ -83,7 +83,7 @@ Yields its argument into the context of the block contents:
 
 ### #each
 
-Takes a single collection argument and yeilds the block's contents once 
+Takes a single collection argument and yields the block's contents once
 for each member of the collection:
 
 ```handlebars
@@ -242,7 +242,7 @@ Which could be used like so:
 
 ### Using Partials
 
-Handlebars allows you to register a partial either as a function or a string template with 
+Handlebars allows you to register a partial either as a function or a string template with
 the engine before compiling, FlavourSaver retains this behaviour (with the notable exception
 of within Rails - see below).
 
@@ -286,6 +286,19 @@ Which would mean that you are able to access it in your template:
 {{#if current_user}}
   Welcome back, {{current_user.first_name}}!
 {{/if}}
+```
+
+## Using the Tilt Interface Directly
+
+You can use the registered Tilt interface directly to render template strings with a hash of template variables.
+
+The Tilt template's `render` method expects an object that can respond to messages using dot notation. In the following example, the template variable `{{foo}}` will result in a call to `.foo` on the `data` object. For this reason the `data` object can't be a simple hash. A model would work, but if you have a plain old Ruby hash, use it to create a new OpenStruct object, which will provide the dot notation needed.
+
+```ruby
+template = Tilt['handlebars'].new { "{{foo}} {{bar}}" }
+data = OpenStruct.new foo: "hello", bar: "world"
+
+template.render data # => "hello world"
 ```
 
 ### Special behaviour of Handlebars' partial syntax

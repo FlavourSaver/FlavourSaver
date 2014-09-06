@@ -109,7 +109,7 @@ module FlavourSaver
                 else
                   helpers = registered_helpers
                 end
-      helpers.merge(locals)
+      helpers = helpers.merge(locals)
       Decorator.new(helpers, context)
     end
 
