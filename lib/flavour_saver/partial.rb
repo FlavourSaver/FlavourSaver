@@ -10,7 +10,7 @@ module FlavourSaver
         partials[name.to_s] = Parser.parse(Lexer.lex(content))
       end
     end
-    
+
     def self.reset_partials
       @partials = {}
     end

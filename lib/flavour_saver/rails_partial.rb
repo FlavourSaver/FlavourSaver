@@ -1,5 +1,5 @@
 module FlavourSaver
-  class RailsPartial 
+  class RailsPartial
     def self.register_partial(*args)
       raise RuntimeError, "No need to register partials inside Rails."
     end
