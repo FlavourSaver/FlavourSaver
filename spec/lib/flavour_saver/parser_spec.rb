@@ -266,6 +266,14 @@ describe FlavourSaver::Parser do
     end
   end
 
+  describe "{{#foo bar 'baz'}}{{/foo}}" do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{#foo bar 'baz'}}{{/foo}}")) }
+
+    it "doesn't throw a NotInLanguage exception" do
+      -> { subject }.should_not raise_error
+    end
+  end
+
   describe '' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('')) }
 

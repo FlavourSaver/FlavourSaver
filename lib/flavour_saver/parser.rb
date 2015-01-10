@@ -134,6 +134,7 @@ module FlavourSaver
 
     production(:string) do
       clause('STRING') { |e| StringNode.new(e) }
+      clause('S_STRING') { |e| StringNode.new(e) }
     end
 
     production(:number) do
