@@ -91,12 +91,12 @@ module FlavourSaver
 
     production(:expr_bl_start) do
       clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
-      clause('EXPRST HASH WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| push_block CallNode.new(e,a) }
+      clause('EXPRST HASH WHITE? IDENT WHITE arguments WHITE? EXPRE') { |_,_,_,e,_,a,_,_| push_block CallNode.new(e,a) }
     end
 
     production(:expr_bl_inv_start) do
       clause('EXPRST HAT WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
-      clause('EXPRST HAT WHITE? IDENT WHITE arguments EXPRE') { |_,_,_,e,_,a,_| push_block CallNode.new(e,a) }
+      clause('EXPRST HAT WHITE? IDENT WHITE arguments WHITE? EXPRE') { |_,_,_,e,_,a,_,_| push_block CallNode.new(e,a) }
     end
 
     production(:expr_bl_end) do
@@ -134,6 +134,7 @@ module FlavourSaver
 
     production(:string) do
       clause('STRING') { |e| StringNode.new(e) }
+      clause('S_STRING') { |e| StringNode.new(e) }
     end
 
     production(:number) do

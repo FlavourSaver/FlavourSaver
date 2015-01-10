@@ -11,7 +11,7 @@ describe 'Fixture: if_else.hbs' do
     subject.should == "Say hello to Alan."
   end
 
-  it 'renders correcrtly when not given a name' do
+  it 'renders correctly when not given a name' do
     subject.should == "Nobody to say hi to."
   end
 end
