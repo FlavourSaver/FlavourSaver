@@ -128,7 +128,9 @@ module FlavourSaver
       when LocalVarNode
         result = private_variable_get(call.name)
       else
-        raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}." unless context.respond_to? call.name
+        if call.parent.is_a? BlockExpressionNode and !context.respond_to? call.name
+          raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}."
+        end
         context.public_send(call.name, *call.arguments.map { |a| evaluate_argument(a) }, &block)
       end
     end
