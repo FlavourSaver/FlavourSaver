@@ -177,7 +177,7 @@ describe FlavourSaver do
 
         it "should be escaped" do
           context.stub(:awesome).and_return("&\"'`\\<>")
-          if RUBY_VERSION == '2.0.0'
+          if RUBY_VERSION >= '2.0.0'
             subject.should == "&amp;&quot;&#39;&#x60;\\&lt;&gt;"
           else
             subject.should == "&amp;&quot;&#x27;&#x60;\\&lt;&gt;"
@@ -655,7 +655,7 @@ describe FlavourSaver do
         example do
           context.stub(:people).and_return([])
           context.stub(:message).and_return("Nobody's here")
-          if RUBY_VERSION == '2.0.0'
+          if RUBY_VERSION >= '2.0.0'
             subject.should == "<p>Nobody&#39;s here</p>"
           else
             subject.should == "<p>Nobody&#x27;s here</p>"
