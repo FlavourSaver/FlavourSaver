@@ -126,8 +126,8 @@ describe FlavourSaver::Lexer do
     end
 
     describe 'Backtrack expression' do
-      subject { FlavourSaver::Lexer.lex "{{../foo}}" } 
-      
+      subject { FlavourSaver::Lexer.lex "{{../foo}}" }
+
       it 'has tokens in the correct order' do
         subject.map(&:type).should == [:EXPRST, :DOT, :DOT, :FWSL, :IDENT, :EXPRE, :EOS]
       end
@@ -147,7 +147,7 @@ describe FlavourSaver::Lexer do
       describe '{{#foo}}{{bar}}{{/foo}}' do
         it 'has tokens in the correct order' do
           subject.map(&:type).should == [
-            :EXPRST, :HASH, :IDENT, :EXPRE, 
+            :EXPRST, :HASH, :IDENT, :EXPRE,
             :EXPRST, :IDENT, :EXPRE,
             :EXPRST, :FWSL, :IDENT, :EXPRE,
             :EOS

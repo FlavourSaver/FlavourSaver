@@ -103,7 +103,7 @@ module FlavourSaver
     def evaluate_partial(node)
       _context = context
       _context = evaluate_argument(node.context) if node.context
-      if defined?(::Rails) 
+      if defined?(::Rails)
         context.send(:render, :partial => node.name, :object => _context)
       else
         partial = Partial.fetch(node.name)
@@ -128,7 +128,9 @@ module FlavourSaver
       when LocalVarNode
         result = private_variable_get(call.name)
       else
-        raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}." unless context.respond_to? call.name
+        if call.parent.is_a? BlockExpressionNode and !context.respond_to? call.name
+          raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}."
+        end
         context.public_send(call.name, *call.arguments.map { |a| evaluate_argument(a) }, &block)
       end
     end
@@ -166,14 +168,14 @@ module FlavourSaver
 
         # If the result is collectiony then act as an implicit
         # "each"
-        if result && result.respond_to?(:each) 
+        if result && result.respond_to?(:each)
           if result.respond_to?(:size) && (result.size > 0)
             r = []
             # Not using #each_with_index because the object might
             # not actually be an Enumerable
             count = 0
-            result.each do |e| 
-              r << block_runtime.contents(e, {'index' => count}) 
+            result.each do |e|
+              r << block_runtime.contents(e, {'index' => count})
               count += 1
             end
             result = r.join('')

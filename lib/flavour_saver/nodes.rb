@@ -81,7 +81,7 @@ module FlavourSaver
       arguments_to_str(name)
     end
   end
-  
+
   class LocalVarNode < CallNode
     def to_s
       arguments_to_str("@#{name}")

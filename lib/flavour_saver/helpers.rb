@@ -72,7 +72,7 @@ module FlavourSaver
 
       def method_missing(name,*args,&b)
         # I would rather have it raise a NameError, but Moustache
-        # compatibility requires that missing helpers return 
+        # compatibility requires that missing helpers return
         # nothing. A good place for bugs to hide.
         @source.send(name, *args, &b) if @source.respond_to? name
       end

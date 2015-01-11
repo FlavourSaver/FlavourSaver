@@ -10,4 +10,8 @@ describe 'Fixture: simple_expression.hbs' do
     context.should_receive(:hello).and_return('hello world')
     subject.should == "hello world"
   end
+
+  it 'renders nothing if undefined' do
+    subject.should == ""
+  end
 end

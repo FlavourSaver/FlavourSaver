@@ -67,7 +67,7 @@ module FlavourSaver
       [ :IDENT, name ]
     end
 
-    rule /\./, :expression do 
+    rule /\./, :expression do
       :DOT
     end
 
@@ -78,12 +78,24 @@ module FlavourSaver
     rule /"/, :expression do
       push_state :string
     end
-    
+
     rule /(\\"|[^"])*/, :string do |str|
       [ :STRING, str ]
     end
 
     rule /"/, :string do
+      pop_state
+    end
+
+    rule /'/, :expression do
+      push_state :s_string
+    end
+
+    rule /(\\'|[^'])*/, :s_string do |str|
+      [ :S_STRING, str ]
+    end
+
+    rule /'/, :s_string do
       pop_state
     end
 

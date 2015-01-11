@@ -177,7 +177,7 @@ describe FlavourSaver do
 
         it "should be escaped" do
           context.stub(:awesome).and_return("&\"'`\\<>")
-          if RUBY_VERSION == '2.0.0'
+          if RUBY_VERSION >= '2.0.0'
             subject.should == "&amp;&quot;&#39;&#x60;\\&lt;&gt;"
           else
             subject.should == "&amp;&quot;&#x27;&#x60;\\&lt;&gt;"
@@ -559,7 +559,7 @@ describe FlavourSaver do
     describe 'block helper for undefined value' do
       let(:template) { "{{#empty}}shoulnd't render{{/empty}}" }
       example do
-        subject.should == ""
+        -> { subject }.should raise_exception(FlavourSaver::UnknownHelperException)
       end
     end
 
@@ -612,6 +612,7 @@ describe FlavourSaver do
       let(:template) { "{{#people}}{{name}}{{^}}{{none}}{{/people}}" }
       example do
         context.stub(:none).and_return("No people")
+        context.stub(:people).and_return(false)
         subject.should == "No people"
       end
     end
@@ -655,7 +656,7 @@ describe FlavourSaver do
         example do
           context.stub(:people).and_return([])
           context.stub(:message).and_return("Nobody's here")
-          if RUBY_VERSION == '2.0.0'
+          if RUBY_VERSION >= '2.0.0'
             subject.should == "<p>Nobody&#39;s here</p>"
           else
             subject.should == "<p>Nobody&#x27;s here</p>"
