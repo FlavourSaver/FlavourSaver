@@ -152,6 +152,7 @@ module FlavourSaver
 
     production(:hash_item) do
       clause('IDENT EQ string') { |e0,_,e1| { e0.to_sym => e1 } }
+      clause('IDENT EQ number') { |e0,_,e1| { e0.to_sym => e1 } }
       clause('IDENT EQ object_path') { |e0,_,e1| { e0.to_sym => e1 } }
     end
 
