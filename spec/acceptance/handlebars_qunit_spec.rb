@@ -748,6 +748,18 @@ describe FlavourSaver do
     end
   end
 
+  describe 'partials with string paths' do
+    let(:template) { "Dudes: {{> \"dude/man\"}}" }
+    before do
+      FS.register_partial("dude/man", "{{name}}")
+    end
+    example do
+      context.stub(:name).and_return('Jeepers')
+      context.stub(:another_dude).and_return('Creepers')
+      subject.should == "Dudes: Jeepers"
+    end
+  end
+
   describe 'string literal parameters' do
 
     describe 'simple literals work' do
