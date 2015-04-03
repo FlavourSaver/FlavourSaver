@@ -125,7 +125,7 @@ module FlavourSaver
       clause('hash') { |e| [e] }
     end
 
-    nonempty_list(:argument_list, [:object_path,:lit], :WHITE)
+    nonempty_list(:argument_list, [:object_path,:lit, :local], :WHITE)
 
     production(:lit) do
       clause('string') { |e| e }
