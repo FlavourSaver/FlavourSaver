@@ -120,7 +120,8 @@ module FlavourSaver
       case call
       when ParentCallNode
         depth = call.depth
-        (2..depth).inject(parent) { |p| p.parent }.evaluate_call(call.to_callnode,&block)
+        ancestor = (2..depth).inject(parent) { |p| p.parent }
+        ancestor.evaluate_call(call.to_callnode,ancestor.context,&block)
       when LiteralCallNode
         result = context.send(:[], call.name)
         result = result.call(*call.arguments.map { |a| evaluate_argument(a) },&block) if result.respond_to? :call
