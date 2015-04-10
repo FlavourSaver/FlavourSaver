@@ -154,6 +154,21 @@ describe FlavourSaver::Parser do
     end
   end
 
+  describe "{{foo bar=1}}" do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{foo bar=1}}")) }
+
+    it "doesn't throw a NotInLanguage exception" do
+      -> { subject }.should_not raise_error
+    end
+
+    it 'calls the method "foo" with the hash {:bar => 1} as arguments' do
+      items.first.method.first.should be_a(FlavourSaver::CallNode)
+      items.first.method.first.name.should == 'foo'
+      items.first.method.first.arguments.first.should be_a(Hash)
+      items.first.method.first.arguments.first.should == { :bar => FlavourSaver::NumberNode.new('1') }
+    end
+  end
+
   describe '{{foo bar="baz" fred="wilma"}}' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{foo bar="baz" fred="wilma"}}')) }
 
