@@ -115,7 +115,7 @@ module FlavourSaver
       end
     end
 
-    def evaluate_call(call, context=context, &block)
+    def evaluate_call(call, context=self.context, &block)
       context = Helpers.decorate_with(context,@helpers,@locals) unless context.is_a? Helpers::Decorator
       case call
       when ParentCallNode
