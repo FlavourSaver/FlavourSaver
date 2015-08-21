@@ -121,7 +121,7 @@ module FlavourSaver
 
     production('arguments') do
       clause('argument_list') { |e| e }
-      clause('argument_list hash') { |e0,e1| e0 + [e1] }
+      clause('argument_list WHITE hash') { |e0,_,e1| e0 + [e1] }
       clause('hash') { |e| [e] }
     end
 
