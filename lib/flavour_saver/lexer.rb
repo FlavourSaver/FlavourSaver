@@ -3,6 +3,21 @@ require 'rltk'
 module FlavourSaver
   class Lexer < RLTK::Lexer
 
+     # seems to have problem with hash symbol in regex
+    rule /\{\{\{\{raw\}\}\}\}/, :default do
+      push_state :raw
+      :RAWSTART
+    end
+
+    rule /.*?(?=\{\{\{\{\/raw\}\}\}\})/m, :raw do |str|
+      [ :RAWSTRING, str ]
+    end
+
+    rule /\{\{\{\{\/raw\}\}\}\}/, :raw do
+      pop_state
+      :RAWEND
+    end
+
     rule /{{{/, :default do
       push_state :expression
       :TEXPRST
