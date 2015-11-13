@@ -39,12 +39,17 @@ module FlavourSaver
     end
 
     production(:template_item) do
-      clause('output') { |e| e }
+      clause('raw_bl')     { |e| e }
+      clause('output')     { |e| e }
       clause('expression') { |e| e }
     end
 
     production(:output) do
       clause('OUT') { |o| OutputNode.new(o) }
+    end
+
+    production(:raw_bl) do
+      clause('RAWSTART RAWSTRING RAWEND') { |_,e,_| OutputNode.new(e) }
     end
 
     production(:expression) do
