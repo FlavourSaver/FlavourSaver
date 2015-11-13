@@ -73,6 +73,7 @@ Currently supported:
     - Block expressions with inverse blocks
     - Inverse blocks
   - Partials
+  - Raw content (`{{{{raw}}}} not parsed or validated {{{{/raw}}}}`)
 
 ## Helpers
 
