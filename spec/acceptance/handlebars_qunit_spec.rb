@@ -909,6 +909,28 @@ describe FlavourSaver do
       end
     end
 
+    describe 'each with @last' do
+      let(:template) { "{{#each goodbyes}}{{@index}}. {{text}}! {{#if @last}}last{{/if}}{{/each}} cruel {{world}}!" }
+
+      example 'the @last variable is used' do
+        g = Struct.new(:text)
+        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        context.stub(:world).and_return('world')
+        subject.should == "0. goodbye! 1. Goodbye! 2. GOODBYE! last cruel world!"
+      end
+    end
+
+    describe 'each with @first' do
+      let(:template) { "{{#each goodbyes}}{{@index}}. {{text}} {{#if @first}}first{{/if}}! {{/each}}cruel {{world}}!" }
+
+      example 'the first variable is used' do
+        g = Struct.new(:text)
+        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        context.stub(:world).and_return('world')
+        subject.should == "0. goodbye first! 1. Goodbye ! 2. GOODBYE ! cruel world!"
+      end
+    end
+
     describe 'log' do
       let(:template) { "{{log blah}}" }
       let(:log) { double(:log) }
