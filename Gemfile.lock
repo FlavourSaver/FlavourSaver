@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    flavour_saver (0.3.6)
+    flavour_saver (0.3.7)
       rltk (~> 2.2.0)
       tilt
 
@@ -77,3 +77,6 @@ DEPENDENCIES
   rspec-core
   rspec-expectations
   rspec-mocks
+
+BUNDLED WITH
+   1.10.6
