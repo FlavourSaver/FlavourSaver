@@ -86,6 +86,10 @@ module FlavourSaver
       clause('EXPRST expression_contents EXPRE') { |_,e,_| e }
     end
 
+    production(:subexpr) do
+      clause('OPAR expression_contents CPAR') { |_,e,_| e }
+    end
+
     production(:expr_comment) do
       clause('EXPRST BANG COMMENT EXPRE') { |_,_,e,_| e }
     end
@@ -130,7 +134,7 @@ module FlavourSaver
       clause('hash') { |e| [e] }
     end
 
-    nonempty_list(:argument_list, [:object_path,:lit], :WHITE)
+    nonempty_list(:argument_list, [:object_path,:lit, :subexpr], :WHITE)
 
     production(:lit) do
       clause('string') { |e| e }
@@ -157,6 +161,7 @@ module FlavourSaver
     end
 
     production(:hash_item) do
+      clause('IDENT EQ subexpr') { |e0,_,e1| { e0.to_sym => e1 } }
       clause('IDENT EQ string') { |e0,_,e1| { e0.to_sym => e1 } }
       clause('IDENT EQ number') { |e0,_,e1| { e0.to_sym => e1 } }
       clause('IDENT EQ object_path') { |e0,_,e1| { e0.to_sym => e1 } }

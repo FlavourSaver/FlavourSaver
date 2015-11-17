@@ -86,6 +86,14 @@ module FlavourSaver
       :DOT
     end
 
+    rule /\(/, :expression do
+      :OPAR
+    end
+
+    rule /\)/, :expression do
+      :CPAR
+    end
+
     rule /\=/, :expression do
       :EQ
     end
