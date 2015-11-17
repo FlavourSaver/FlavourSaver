@@ -265,6 +265,19 @@ Below are some examples, utilizing a "sum" helper than adds together two numbers
 {{#student_heights size=(sum boys girls)}}
 ```
 
+### Raw Content
+
+Sometimes you don't want a section of content to be evaluted as handlebars, such as when you want to display it in a page that renders with handlebars. FlavourSaver offers a `raw` helper, that will allow you to pass anything through wrapped in those elements, and it will not be evaluated. 
+
+```
+{{{{raw}}}}
+{{if} this tries to parse, it will break on syntax
+{{{{/raw}}}}
+=> {{if} this tries to parse, it will break on syntax
+```
+
+Its important to note that while this looks like a block helper, it is not in practice. This is why you must omit the use of a `#` when writing it. 
+
 ### Using Partials
 
 Handlebars allows you to register a partial either as a function or a string template with
