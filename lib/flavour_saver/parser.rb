@@ -133,8 +133,8 @@ module FlavourSaver
       clause('argument_list WHITE hash') { |e0,_,e1| e0 + [e1] }
       clause('hash') { |e| [e] }
     end
-
-    nonempty_list(:argument_list, [:object_path,:lit, :subexpr], :WHITE)
+    
+    nonempty_list(:argument_list, [:object_path,:lit, :local, :subexpr], :WHITE)
 
     production(:lit) do
       clause('string') { |e| e }
