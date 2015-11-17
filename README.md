@@ -74,6 +74,7 @@ Currently supported:
     - Inverse blocks
   - Partials
   - Raw content (`{{{{raw}}}} not parsed or validated {{{{/raw}}}}`)
+  - Subexpressions (`{{sum 1 (sum 1 1)}}` returns `3`)
 
 ## Helpers
 
@@ -246,6 +247,22 @@ Which could be used like so:
 {{else}}
   {{person.name}} is male.
 {{/isFemale}}
+```
+
+### Subexpressions
+
+You can use a subexpression as any value for a helper, and it will be executed before it is ran. You can also nest them, and use them in assignment of variables. 
+
+Below are some examples, utilizing a "sum" helper than adds together two numbers.
+
+```
+{{sum (sum 5 10) (sum 2 (sum 1 4))}}
+#=> 22
+
+{{#if (sum 1 2) > 2}}its more{{/if}}
+#=> its more
+
+{{#student_heights size=(sum boys girls)}}
 ```
 
 ### Using Partials
