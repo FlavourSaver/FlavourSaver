@@ -110,6 +110,17 @@ describe FlavourSaver::Runtime do
       end
     end
 
+    describe 'when called with a subexpression' do
+      let(:template) { "{{hello (there world)}}" }
+
+      it 'calls there & world first, then passes off to hello' do
+        context.should_receive(:world).and_return('world')
+        context.should_receive(:there).with('world').and_return('there world')
+        context.should_receive(:hello).with('there world').and_return('hello there world')
+        subject.evaluate_expression(expr).should == 'hello there world'
+      end
+    end
+
     describe 'when called with an object path' do
       let(:template) { "{{hello.world}}" }
 

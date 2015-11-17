@@ -49,6 +49,18 @@ describe FlavourSaver::Lexer do
         end
       end
 
+      describe '{{foo (bar "baz")}}' do
+        subject { FlavourSaver::Lexer.lex "{{foo (bar 'baz')}}" }
+
+        it 'has tokens in the correct order' do
+          subject.map(&:type).should ==  [ :EXPRST, :IDENT, :WHITE, :OPAR, :IDENT, :WHITE, :S_STRING, :CPAR, :EXPRE, :EOS ]
+        end
+
+        it 'has values in the correct order' do
+          subject.map(&:value).compact.should == [ 'foo', 'bar', 'baz' ]
+        end
+      end
+
       describe '{{foo bar="baz" hello="goodbye"}}' do
         subject { FlavourSaver::Lexer.lex '{{foo bar="baz" hello="goodbye"}}' }
 
@@ -60,6 +72,18 @@ describe FlavourSaver::Lexer do
           subject.map(&:value).compact.should == [ 'foo', 'bar', 'baz', 'hello', 'goodbye' ]
         end
 
+      end
+    end
+
+    describe '{{foo bar=(baz qux)}}' do
+      subject { FlavourSaver::Lexer.lex '{{foo bar=(baz qux)}}' }
+
+      it 'has tokens in the correct order' do
+        subject.map(&:type).should == [:EXPRST, :IDENT, :WHITE, :IDENT, :EQ, :OPAR, :IDENT, :WHITE, :IDENT, :CPAR, :EXPRE, :EOS]
+      end
+
+      it 'has values in the correct order' do
+        subject.map(&:value).compact.should == [ 'foo', 'bar', 'baz', 'qux' ]
       end
     end
 
