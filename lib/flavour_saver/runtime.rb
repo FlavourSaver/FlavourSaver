@@ -34,7 +34,7 @@ module FlavourSaver
         @privates = old_privates
         @context = old_context
       else
-        result = evaluate_node(@ast)
+        result = evaluate_node(@ast).to_s.force_encoding(Encoding::default_external)
       end
       result
     end
