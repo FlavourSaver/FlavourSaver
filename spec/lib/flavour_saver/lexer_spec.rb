@@ -75,6 +75,27 @@ describe FlavourSaver::Lexer do
       end
     end
 
+    describe 'Identities' do
+
+      it 'supports as ruby methods' do
+        ids = %w( _ __ __123__ __ABC__ ABC123 Abc134def )
+        ids.each do |id|
+          subject = FlavourSaver::Lexer.lex "{{#{id}}}"
+          subject[1].type.should == :IDENT
+          subject[1].value.should == id
+        end
+      end
+
+      it 'maps non-ruby identities to literals' do
+        ids = %w( A-B 12_Mine - :example 0A test? )
+        ids.each do |id|
+          subject = FlavourSaver::Lexer.lex "{{#{id}}}"
+          subject[1].type.should == :LITERAL
+          subject[1].value.should == id
+        end
+      end
+    end
+
     describe '{{foo bar=(baz qux)}}' do
       subject { FlavourSaver::Lexer.lex '{{foo bar=(baz qux)}}' }
 
