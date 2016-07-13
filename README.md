@@ -8,7 +8,7 @@
 
 ## WAT?
 
-FlavourSaver is a ruby-based implementation of the [Handlebars.js](http://handlebars.js)
+FlavourSaver is a ruby-based implementation of the [Handlebars.js](http://handlebarsjs.com)
 templating language. FlavourSaver supports Handlebars template rendering natively on
 Rails and on other frameworks (such as Sinatra) via Tilt.
 
