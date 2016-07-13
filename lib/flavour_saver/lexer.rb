@@ -78,7 +78,7 @@ module FlavourSaver
       :ELSE
     end
 
-    rule /([A-Za-z]\w*)/, :expression do |name|
+    rule /([A-Za-z_]\w*)/, :expression do |name|
       [ :IDENT, name ]
     end
 
@@ -122,10 +122,15 @@ module FlavourSaver
       pop_state
     end
 
-    # Handlebars allows methods with hyphens in them. Ruby doesn't, so
-    # we'll assume you're trying to index the context with the identifier
-    # and call the result.
-    rule /([A-Za-z][a-z0-9_-]*[a-z0-9])/, :expression do |str|
+    # Handlebars allows identifiers with characters in them which Ruby does not.
+    # These are mapped to the literal notation and accessed in this way.
+    #
+    # As per the http://handlebarsjs.com/expressions.html:
+    #
+    #   Identifiers may be any unicode character except for the following:
+    #   Whitespace ! " # % & ' ( ) * + , . / ; < = > @ [ \ ] ^ ` { | } ~
+    #
+    rule /([^\s!-#%-,.\/;->@\[-^`{-~]+)/, :expression do |str|
       [ :LITERAL, str ]
     end
 
