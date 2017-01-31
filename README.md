@@ -2,9 +2,9 @@
 
 [Handlebars.js](http://handlebarsjs.com) without the `.js`
 
-[![Build Status](https://travis-ci.org/jamesotron/FlavourSaver.png)](https://travis-ci.org/jamesotron/FlavourSaver)
-[![Dependency Status](https://gemnasium.com/jamesotron/FlavourSaver.png)](https://gemnasium.com/jamesotron/FlavourSaver)
-[![Code Climate](https://codeclimate.com/github/jamesotron/FlavourSaver.png)](https://codeclimate.com/github/jamesotron/FlavourSaver)
+[![Build Status](https://travis-ci.org/jamesotron/FlavourSaver.svg)](https://travis-ci.org/jamesotron/FlavourSaver)
+[![Dependency Status](https://gemnasium.com/jamesotron/FlavourSaver.svg)](https://gemnasium.com/jamesotron/FlavourSaver)
+[![Code Climate](https://codeclimate.com/github/jamesotron/FlavourSaver.svg)](https://codeclimate.com/github/jamesotron/FlavourSaver)
 
 ## WAT?
 
