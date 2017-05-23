@@ -95,7 +95,7 @@ module FlavourSaver
   end
 
   class ParentCallNode < CallNode
-    value :depth, Fixnum
+    value :depth, Integer
 
     def to_callnode
       CallNode.new(name,arguments)
