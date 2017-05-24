@@ -766,7 +766,7 @@ describe FlavourSaver do
       let(:template) { "Message: {{hello \"world\" 12 true false}}" }
       before do
         FS.register_helper(:hello) do |param,times,bool1,bool2|
-          times = "NaN" unless times.is_a? Fixnum
+          times = "NaN" unless times.is_a? Integer
           bool1 = "NaB" unless bool1 == true
           bool2 = "NaB" unless bool2 == false
           "Hello #{param} #{times} times: #{bool1} #{bool2}"
