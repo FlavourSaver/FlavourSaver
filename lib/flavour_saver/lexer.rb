@@ -56,6 +56,10 @@ module FlavourSaver
       [ :NUMBER, n ]
     end
 
+    rule /0*(\.[0-9]+)?/, :expression do |n|
+      [ :NUMBER, n ]
+    end
+
     rule /true/, :expression do |i|
       [ :BOOL, true ]
     end

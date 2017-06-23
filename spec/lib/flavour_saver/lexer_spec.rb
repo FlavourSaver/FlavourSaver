@@ -73,6 +73,42 @@ describe FlavourSaver::Lexer do
         end
 
       end
+
+      describe '{{0}}' do
+        subject { FlavourSaver::Lexer.lex "{{0}}" }
+
+        it 'begins with an EXPRST' do
+          subject.first.type.should == :EXPRST
+        end
+
+        it 'ends with an EXPRE' do
+          subject[-2].type.should == :EXPRE
+        end
+
+        it 'contains only the number "0"' do
+          subject[1..-3].size.should == 1
+          subject[1].type.should == :NUMBER
+          subject[1].value.should == '0'
+        end
+      end
+
+      describe '{{0.0123456789}}' do
+        subject { FlavourSaver::Lexer.lex "{{0.0123456789}}" }
+
+        it 'begins with an EXPRST' do
+          subject.first.type.should == :EXPRST
+        end
+
+        it 'ends with an EXPRE' do
+          subject[-2].type.should == :EXPRE
+        end
+
+        it 'contains only the number "0.0123456789"' do
+          subject[1..-3].size.should == 1
+          subject[1].type.should == :NUMBER
+          subject[1].value.should == '0.0123456789'
+        end
+      end
     end
 
     describe 'Identities' do
