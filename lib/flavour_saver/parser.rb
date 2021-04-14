@@ -115,7 +115,6 @@ module FlavourSaver
 
     production(:expression_contents) do
       clause('WHITE? call WHITE?') { |_,e,_| e }
-      clause('WHITE? local WHITE?') { |_,e,_| [e] }
     end
 
     production(:call) do
@@ -124,17 +123,13 @@ module FlavourSaver
       clause('DOT') { |_| [CallNode.new('this', [])] }
     end
 
-    production(:local) do
-      clause('AT IDENT') { |_,e| LocalVarNode.new(e) }
-    end
-
     production('arguments') do
       clause('argument_list') { |e| e }
       clause('argument_list WHITE hash') { |e0,_,e1| e0 + [e1] }
       clause('hash') { |e| [e] }
     end
     
-    nonempty_list(:argument_list, [:object_path,:lit, :local, :subexpr], :WHITE)
+    nonempty_list(:argument_list, [:object_path,:lit, :subexpr], :WHITE)
 
     production(:lit) do
       clause('string') { |e| e }
@@ -175,6 +170,7 @@ module FlavourSaver
     nonempty_list(:object_path, :object, :object_sep)
 
     production(:object) do
+      clause('AT IDENT') { |_,e| LocalVarNode.new(e) }
       clause('IDENT') { |e| CallNode.new(e, []) }
       clause('LITERAL') { |e| LiteralCallNode.new(e, []) }
       clause('parent_call') { |e| e }

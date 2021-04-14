@@ -909,6 +909,17 @@ describe FlavourSaver do
       end
     end
 
+    describe 'each with @index in a nested block' do
+      let(:template) { "{{#each goodbyes}}{{#if @last}}{{@index}}. {{/if}}{{text}}! {{/each}}cruel {{world}}!" }
+
+      example 'the @index variable is used' do
+        g = Struct.new(:text)
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "goodbye! Goodbye! 2. GOODBYE! cruel world!"
+      end
+    end
+
     describe 'each with @last' do
       let(:template) { "{{#each goodbyes}}{{@index}}. {{text}}! {{#if @last}}last{{/if}}{{/each}} cruel {{world}}!" }
 
@@ -928,6 +939,28 @@ describe FlavourSaver do
         allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
         allow(context).to receive(:world).and_return('world')
         expect(subject).to eq "0. goodbye first! 1. Goodbye ! 2. GOODBYE ! cruel world!"
+      end
+    end
+
+    describe 'each with @root' do
+      let(:template) { "{{#each goodbyes}}{{@index}}. {{text}} cruel {{@root.place}}! {{/each}}" }
+
+      example 'the root variable is used' do
+        g = Struct.new(:text)
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:place).and_return('world')
+        expect(subject).to eq "0. goodbye cruel world! 1. Goodbye cruel world! 2. GOODBYE cruel world! "
+      end
+    end
+
+    describe 'each with @root in a nested block' do
+      let(:template) { "{{#each goodbyes}}{{@index}}. {{text}}{{#if @last}} cruel {{@root.place}}{{/if}}! {{/each}}" }
+
+      example 'the root variable is used' do
+        g = Struct.new(:text)
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:place).and_return('world')
+        expect(subject).to eq "0. goodbye! 1. Goodbye! 2. GOODBYE cruel world! "
       end
     end
 

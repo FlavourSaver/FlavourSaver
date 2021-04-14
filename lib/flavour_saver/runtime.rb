@@ -8,7 +8,7 @@ module FlavourSaver
   UnknownHelperException            = Class.new(RuntimeError)
   class Runtime
 
-    attr_accessor :context, :parent, :ast
+    attr_accessor :context, :parent, :ast, :privates
 
     def self.run(ast, context, locals={}, helpers=[])
       self.new(ast, context, locals, helpers).to_s
@@ -20,7 +20,7 @@ module FlavourSaver
       @helpers = helpers
       @context = context
       @parent = parent
-      @privates = {}
+      @privates = parent ? parent.privates.dup : { 'root' => context }
     end
 
     def to_s(tmp_context = nil,privates={})
