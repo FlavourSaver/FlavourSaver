@@ -20,7 +20,7 @@ describe FlavourSaver::Runtime do
         is_even_helper = proc { |n| n % 2 == 0 }
 
         locals[:is_even] = is_even_helper
-        subject.should == "24 is even"
+        expect(subject).to eq "24 is even"
       end
     end
   end

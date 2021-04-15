@@ -22,8 +22,8 @@ describe FlavourSaver do
       let(:template) { "{{foo}}" }
 
       it 'returns "foo"' do
-        context.stub(:foo).and_return('foo')
-        subject.should == 'foo'
+        allow(context).to receive(:foo).and_return('foo')
+        expect(subject).to eq 'foo'
       end
     end
 
@@ -31,9 +31,9 @@ describe FlavourSaver do
       let(:template) { "Goodbye\n{{cruel}}\n{{world}}!" }
 
       it 'it works if all the required keys are provided' do
-        context.should_receive(:cruel).and_return('cruel')
-        context.should_receive(:world).and_return('world')
-        subject.should == "Goodbye\ncruel\nworld!"
+        expect(context).to receive(:cruel).and_return('cruel')
+        expect(context).to receive(:world).and_return('world')
+        expect(subject).to eq "Goodbye\ncruel\nworld!"
       end
     end
 
@@ -41,9 +41,9 @@ describe FlavourSaver do
       let(:template) {"{{! Goodbye}}Goodbye\n{{cruel}}\n{{world}}!"}
 
       it 'comments are ignored' do
-        context.should_receive(:cruel).and_return('cruel')
-        context.should_receive(:world).and_return('world')
-        subject.should == "Goodbye\ncruel\nworld!"
+        expect(context).to receive(:cruel).and_return('cruel')
+        expect(context).to receive(:world).and_return('world')
+        expect(subject).to eq "Goodbye\ncruel\nworld!"
       end
     end
 
@@ -51,15 +51,15 @@ describe FlavourSaver do
       let(:template) { "{{#goodbye}}GOODBYE {{/goodbye}}cruel {{world}}!" }
 
       it 'booleans show the contents when true' do
-        context.stub(:goodbye).and_return(true)
-        context.stub(:world).and_return('world')
-        subject.should == "GOODBYE cruel world!"
+        allow(context).to receive(:goodbye).and_return(true)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "GOODBYE cruel world!"
       end
 
       it 'booleans do not show the contents when false' do
-        context.stub(:goodbye).and_return(false)
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(context).to receive(:goodbye).and_return(false)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
     end
 
@@ -68,9 +68,9 @@ describe FlavourSaver do
         let (:template) { "num1: {{num1}}, num2: {{num2}}" }
 
         it 'should compile to "num1: 42, num2: 0"' do
-          context.stub(:num1).and_return(42)
-          context.stub(:num2).and_return(0)
-          subject.should == 'num1: 42, num2: 0'
+          allow(context).to receive(:num1).and_return(42)
+          allow(context).to receive(:num2).and_return(0)
+          expect(subject).to eq 'num1: 42, num2: 0'
         end
       end
 
@@ -78,7 +78,7 @@ describe FlavourSaver do
         let (:template) { 'num: {{.}}' }
 
         it 'should compile to "num: 0"' do
-          FlavourSaver.evaluate(template,0).should == 'num: 0'
+          expect(FlavourSaver.evaluate(template,0)).to eq 'num: 0'
         end
       end
 
@@ -86,8 +86,8 @@ describe FlavourSaver do
         let(:template) { 'num: {{num1/num2}}' }
 
         it 'should compile to "num: 0"' do
-          context.stub_chain(:num1, :num2).and_return(0)
-          subject.should == 'num: 0'
+          allow(context).to receive_message_chain(:num1, :num2).and_return(0)
+          expect(subject).to eq 'num: 0'
         end
       end
     end
@@ -97,7 +97,7 @@ describe FlavourSaver do
         let(:template) { "Alan's\nTest" }
 
         it 'works' do
-          subject.should == "Alan's\nTest"
+          expect(subject).to eq "Alan's\nTest"
         end
       end
 
@@ -105,7 +105,7 @@ describe FlavourSaver do
         let(:template) { "Alan's\rTest" }
 
         it 'works' do
-          subject.should == "Alan's\rTest"
+          expect(subject).to eq "Alan's\rTest"
         end
       end
     end
@@ -115,7 +115,7 @@ describe FlavourSaver do
         let(:template) {"Awesome's"}
 
         it "text is escapes so that it doesn't get caught in single quites" do
-          subject.should == "Awesome's"
+          expect(subject).to eq "Awesome's"
         end
       end
 
@@ -123,7 +123,7 @@ describe FlavourSaver do
         let(:template) { "Awesome \\" }
 
         it "text is escaped so that the closing quote can't be ignored" do
-          subject.should == "Awesome \\"
+          expect(subject).to eq "Awesome \\"
         end
       end
 
@@ -131,7 +131,7 @@ describe FlavourSaver do
         let(:template) { "Awesome\\\\ foo" }
 
         it "text is escapes so that it doesn't mess up the backslashes" do
-          subject.should == "Awesome\\\\ foo"
+          expect(subject).to eq "Awesome\\\\ foo"
         end
       end
 
@@ -139,8 +139,8 @@ describe FlavourSaver do
         let(:template) { "Awesome {{foo}}" }
 
         it "text is escaped so that it doesn't mess up backslashes" do
-          context.stub(:foo).and_return('\\')
-          subject.should == "Awesome \\"
+          allow(context).to receive(:foo).and_return('\\')
+          expect(subject).to eq "Awesome \\"
         end
       end
 
@@ -148,7 +148,7 @@ describe FlavourSaver do
         let(:template) { ' " " ' }
 
         it "double quotes never produce invalid javascript" do
-          subject.should == ' " " '
+          expect(subject).to eq ' " " '
         end
       end
     end
@@ -158,8 +158,8 @@ describe FlavourSaver do
         let(:template) { "{{{awesome}}}" }
 
         it "shouldn't be escaped" do
-          context.stub(:awesome).and_return("&\"\\<>")
-          subject.should == "&\"\\<>"
+          allow(context).to receive(:awesome).and_return("&\"\\<>")
+          expect(subject).to eq "&\"\\<>"
         end
       end
 
@@ -167,8 +167,8 @@ describe FlavourSaver do
         let(:template) { "{{&awesome}}" }
 
         it "shouldn't be escaped" do
-          context.stub(:awesome).and_return("&\"\\<>")
-          subject.should == "&\"\\<>"
+          allow(context).to receive(:awesome).and_return("&\"\\<>")
+          expect(subject).to eq "&\"\\<>"
         end
       end
 
@@ -176,11 +176,11 @@ describe FlavourSaver do
         let(:template) { "{{awesome}}" }
 
         it "should be escaped" do
-          context.stub(:awesome).and_return("&\"'`\\<>")
+          allow(context).to receive(:awesome).and_return("&\"'`\\<>")
           if RUBY_VERSION >= '2.0.0'
-            subject.should == "&amp;&quot;&#39;&#x60;\\&lt;&gt;"
+            expect(subject).to eq "&amp;&quot;&#39;&#x60;\\&lt;&gt;"
           else
-            subject.should == "&amp;&quot;&#x27;&#x60;\\&lt;&gt;"
+            expect(subject).to eq "&amp;&quot;&#x27;&#x60;\\&lt;&gt;"
           end
         end
       end
@@ -189,8 +189,8 @@ describe FlavourSaver do
         let(:template) { "{{awesome}}" }
 
         it "should be escaped" do
-          context.stub(:awesome).and_return("Escaped, <b> looks like: &lt;b&gt;")
-          subject.should == "Escaped, &lt;b&gt; looks like: &amp;lt;b&amp;gt;"
+          allow(context).to receive(:awesome).and_return("Escaped, <b> looks like: &lt;b&gt;")
+          expect(subject).to eq "Escaped, &lt;b&gt; looks like: &amp;lt;b&amp;gt;"
         end
       end
     end
@@ -199,8 +199,8 @@ describe FlavourSaver do
       let(:template) { "{{awesome}}" }
 
       it "shouldn't be escaped" do
-        context.stub(:awesome).and_return("&\"\\<>".html_safe)
-        subject.should == "&\"\\<>"
+        allow(context).to receive(:awesome).and_return("&\"\\<>".html_safe)
+        expect(subject).to eq "&\"\\<>"
       end
     end
 
@@ -208,8 +208,8 @@ describe FlavourSaver do
       let(:template) { "{{awesome}}" }
 
       it "are called and render their output" do
-        context.stub(:awesome).and_return("Awesome")
-        subject.should == "Awesome"
+        allow(context).to receive(:awesome).and_return("Awesome")
+        expect(subject).to eq "Awesome"
       end
     end
 
@@ -218,8 +218,8 @@ describe FlavourSaver do
         let(:template) { "{{foo-bar}}" }
 
         it 'paths can contain hyphens (-)' do
-          context.should_receive(:[]).with('foo-bar').and_return('baz')
-          subject.should == 'baz'
+          expect(context).to receive(:[]).with('foo-bar').and_return('baz')
+          expect(subject).to eq 'baz'
         end
       end
 
@@ -227,8 +227,8 @@ describe FlavourSaver do
         let(:template) { "{{foo.foo-bar}}" }
 
         it 'paths can contain hyphens (-)' do
-          context.stub_chain(:foo, :[]).with('foo-bar').and_return(proc { 'baz' })
-          subject.should == 'baz'
+          allow(context).to receive_message_chain(:foo, :[]).with('foo-bar').and_return(proc { 'baz' })
+          expect(subject).to eq 'baz'
         end
       end
 
@@ -236,8 +236,8 @@ describe FlavourSaver do
         let(:template) { "{{foo/foo-bar}}" }
 
         it 'paths can contain hyphens (-)' do
-          context.stub_chain(:foo, :[]).with('foo-bar').and_return('baz')
-          subject.should == 'baz'
+          allow(context).to receive_message_chain(:foo, :[]).with('foo-bar').and_return('baz')
+          expect(subject).to eq 'baz'
         end
       end
 
@@ -245,8 +245,8 @@ describe FlavourSaver do
         let(:template) {"Goodbye {{alan/expression}} world!"}
 
         it 'access nested object' do
-          context.stub_chain(:alan, :expression).and_return('beautiful')
-          subject.should == 'Goodbye beautiful world!'
+          allow(context).to receive_message_chain(:alan, :expression).and_return('beautiful')
+          expect(subject).to eq 'Goodbye beautiful world!'
         end
       end
 
@@ -254,8 +254,8 @@ describe FlavourSaver do
         let(:template) {"Goodbye {{alan/expression}} world!"}
 
         it 'access nested object' do
-          context.stub_chain(:alan, :expression).and_return('')
-          subject.should == 'Goodbye  world!'
+          allow(context).to receive_message_chain(:alan, :expression).and_return('')
+          expect(subject).to eq 'Goodbye  world!'
         end
       end
 
@@ -264,9 +264,9 @@ describe FlavourSaver do
 
         it 'literal paths can be used' do
           alan = double(:alan)
-          context.should_receive(:[]).with('@alan').and_return(alan)
-          alan.should_receive(:expression).and_return('beautiful')
-          subject.should == 'Goodbye beautiful world!'
+          expect(context).to receive(:[]).with('@alan').and_return(alan)
+          expect(alan).to receive(:expression).and_return('beautiful')
+          expect(subject).to eq 'Goodbye beautiful world!'
         end
       end
 
@@ -274,13 +274,13 @@ describe FlavourSaver do
         let(:template) { '{{person/name}}' }
 
         it 'returns empty string from nested paths' do
-          context.stub_chain(:person,:name).and_return('')
-          subject.should == ''
+          allow(context).to receive_message_chain(:person,:name).and_return('')
+          expect(subject).to eq ''
         end
 
         it 'returns empty string from nil objects' do
-          context.stub_chain(:person,:name)
-          subject.should == ''
+          allow(context).to receive_message_chain(:person,:name)
+          expect(subject).to eq ''
         end
       end
 
@@ -289,8 +289,8 @@ describe FlavourSaver do
           let(:template) { "{{#goodbyes}}{{this}}{{/goodbyes}}" }
 
           it 'evaluates to the current context' do
-            context.stub(:goodbyes).and_return(["goodbye", "Goodbye", "GOODBYE"])
-            subject.should == "goodbyeGoodbyeGOODBYE"
+            allow(context).to receive(:goodbyes).and_return(["goodbye", "Goodbye", "GOODBYE"])
+            expect(subject).to eq "goodbyeGoodbyeGOODBYE"
           end
         end
 
@@ -300,13 +300,13 @@ describe FlavourSaver do
           it 'evaluates in more complex paths' do
             hellos = []
             hellos << double(:hello)
-            hellos[0].should_receive(:text).and_return('hello')
+            expect(hellos[0]).to receive(:text).and_return('hello')
             hellos << double(:Hello)
-            hellos[1].should_receive(:text).and_return('Hello')
+            expect(hellos[1]).to receive(:text).and_return('Hello')
             hellos << double(:HELLO)
-            hellos[2].should_receive(:text).and_return('HELLO')
-            context.stub(:hellos).and_return(hellos)
-            subject.should == "helloHelloHELLO"
+            expect(hellos[2]).to receive(:text).and_return('HELLO')
+            allow(context).to receive(:hellos).and_return(hellos)
+            expect(subject).to eq "helloHelloHELLO"
           end
         end
       end
@@ -318,8 +318,8 @@ describe FlavourSaver do
           let(:template) { "{{#goodbyes}}{{foo this}}{{/goodbyes}}" }
 
           it 'evaluates to current context' do
-            context.stub(:goodbyes).and_return(["goodbye", "Goodbye", "GOODBYE"])
-            subject.should == "bar goodbyebar Goodbyebar GOODBYE"
+            allow(context).to receive(:goodbyes).and_return(["goodbye", "Goodbye", "GOODBYE"])
+            expect(subject).to eq "bar goodbyebar Goodbyebar GOODBYE"
           end
         end
 
@@ -329,13 +329,13 @@ describe FlavourSaver do
           it 'evaluates to current context' do
             hellos = []
             hellos << double(:hello)
-            hellos[0].should_receive(:text).and_return('hello')
+            expect(hellos[0]).to receive(:text).and_return('hello')
             hellos << double(:Hello)
-            hellos[1].should_receive(:text).and_return('Hello')
+            expect(hellos[1]).to receive(:text).and_return('Hello')
             hellos << double(:HELLO)
-            hellos[2].should_receive(:text).and_return('HELLO')
-            context.stub(:hellos).and_return(hellos)
-            subject.should == "bar hellobar Hellobar HELLO"
+            expect(hellos[2]).to receive(:text).and_return('HELLO')
+            allow(context).to receive(:hellos).and_return(hellos)
+            expect(subject).to eq "bar hellobar Hellobar HELLO"
           end
         end
       end
@@ -347,22 +347,22 @@ describe FlavourSaver do
 
     describe 'with unset value' do
       it 'renders' do
-        context.stub(:goodbyes)
-        subject.should == 'Right On!'
+        allow(context).to receive(:goodbyes)
+        expect(subject).to eq 'Right On!'
       end
     end
 
     describe 'with false value' do
       it 'renders' do
-        context.stub(:goodbyes).and_return(false)
-        subject.should == 'Right On!'
+        allow(context).to receive(:goodbyes).and_return(false)
+        expect(subject).to eq 'Right On!'
       end
     end
 
     describe 'with an empty set' do
       it 'renders' do
-        context.stub(:goodbyes).and_return([])
-        subject.should == 'Right On!'
+        allow(context).to receive(:goodbyes).and_return([])
+        expect(subject).to eq 'Right On!'
       end
     end
   end
@@ -373,20 +373,20 @@ describe FlavourSaver do
     it 'arrays iterate the contents with non-empty' do
       goodbyes = []
       goodbyes << double(:goodbye)
-      goodbyes[0].should_receive(:text).and_return('goodbye')
+      expect(goodbyes[0]).to receive(:text).and_return('goodbye')
       goodbyes << double(:Goodbye)
-      goodbyes[1].should_receive(:text).and_return('Goodbye')
+      expect(goodbyes[1]).to receive(:text).and_return('Goodbye')
       goodbyes << double(:GOODBYE)
-      goodbyes[2].should_receive(:text).and_return('GOODBYE')
-      context.stub(:goodbyes).and_return(goodbyes)
-      context.stub(:world).and_return('world')
-      subject.should == "goodbye! Goodbye! GOODBYE! cruel world!"
+      expect(goodbyes[2]).to receive(:text).and_return('GOODBYE')
+      allow(context).to receive(:goodbyes).and_return(goodbyes)
+      allow(context).to receive(:world).and_return('world')
+      expect(subject).to eq "goodbye! Goodbye! GOODBYE! cruel world!"
     end
 
     it 'ignores the contents when the array is empty' do
-      context.stub(:goodbyes).and_return([])
-      context.stub(:world).and_return('world')
-      subject.should == "cruel world!"
+      allow(context).to receive(:goodbyes).and_return([])
+      allow(context).to receive(:world).and_return('world')
+      expect(subject).to eq "cruel world!"
     end
 
     describe 'array with @index' do
@@ -395,14 +395,14 @@ describe FlavourSaver do
       it 'the @index variable is used' do
         goodbyes = []
         goodbyes << double(:goodbye)
-        goodbyes[0].should_receive(:text).and_return('goodbye')
+        expect(goodbyes[0]).to receive(:text).and_return('goodbye')
         goodbyes << double(:Goodbye)
-        goodbyes[1].should_receive(:text).and_return('Goodbye')
+        expect(goodbyes[1]).to receive(:text).and_return('Goodbye')
         goodbyes << double(:GOODBYE)
-        goodbyes[2].should_receive(:text).and_return('GOODBYE')
-        context.stub(:goodbyes).and_return(goodbyes)
-        context.stub(:world).and_return('world')
-        subject.should == "0. goodbye! 1. Goodbye! 2. GOODBYE! cruel world!"
+        expect(goodbyes[2]).to receive(:text).and_return('GOODBYE')
+        allow(context).to receive(:goodbyes).and_return(goodbyes)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "0. goodbye! 1. Goodbye! 2. GOODBYE! cruel world!"
       end
     end
 
@@ -412,20 +412,20 @@ describe FlavourSaver do
       it 'arrays iterate the contents with non-empty' do
         goodbyes = []
         goodbyes << double(:goodbye)
-        goodbyes[0].stub(:text).and_return('goodbye')
+        allow(goodbyes[0]).to receive(:text).and_return('goodbye')
         goodbyes << double(:Goodbye)
-        goodbyes[1].stub(:text).and_return('Goodbye')
+        allow(goodbyes[1]).to receive(:text).and_return('Goodbye')
         goodbyes << double(:GOODBYE)
-        goodbyes[2].stub(:text).and_return('GOODBYE')
-        context.stub(:goodbyes).and_return(goodbyes)
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(goodbyes[2]).to receive(:text).and_return('GOODBYE')
+        allow(context).to receive(:goodbyes).and_return(goodbyes)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
 
       it 'ignores the contents when the array is empty' do
-        context.stub(:goodbyes).and_return([])
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(context).to receive(:goodbyes).and_return([])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
     end
 
@@ -435,16 +435,16 @@ describe FlavourSaver do
       let(:template) {"{{#goodbyes}}{{text}} cruel {{../name}}! {{/goodbyes}}"}
 
       it 'templates can access variables in contexts up the stack with relative path syntax' do
-        context.stub(:name).and_return('Alan')
+        allow(context).to receive(:name).and_return('Alan')
         goodbyes = []
         goodbyes << double(:goodbye)
-        goodbyes[0].should_receive(:text).and_return('goodbye')
+        expect(goodbyes[0]).to receive(:text).and_return('goodbye')
         goodbyes << double(:Goodbye)
-        goodbyes[1].should_receive(:text).and_return('Goodbye')
+        expect(goodbyes[1]).to receive(:text).and_return('Goodbye')
         goodbyes << double(:GOODBYE)
-        goodbyes[2].should_receive(:text).and_return('GOODBYE')
-        context.stub(:goodbyes).and_return(goodbyes)
-        subject.should == "goodbye cruel Alan! Goodbye cruel Alan! GOODBYE cruel Alan! "
+        expect(goodbyes[2]).to receive(:text).and_return('GOODBYE')
+        allow(context).to receive(:goodbyes).and_return(goodbyes)
+        expect(subject).to eq "goodbye cruel Alan! Goodbye cruel Alan! GOODBYE cruel Alan! "
       end
     end
 
@@ -457,13 +457,13 @@ describe FlavourSaver do
       end
 
       it 'renders correctly' do
-        context.stub(:prefix).and_return('/root')
+        allow(context).to receive(:prefix).and_return('/root')
         goodbyes = []
         goodbyes << double(:Goodbye)
-        goodbyes[0].should_receive(:text).and_return('Goodbye')
-        goodbyes[0].should_receive(:url).and_return('goodbye')
-        context.stub(:goodbyes).and_return(goodbyes)
-        subject.should == "<a href='/root/goodbye'>Goodbye</a>"
+        expect(goodbyes[0]).to receive(:text).and_return('Goodbye')
+        expect(goodbyes[0]).to receive(:url).and_return('goodbye')
+        allow(context).to receive(:goodbyes).and_return(goodbyes)
+        expect(subject).to eq "<a href='/root/goodbye'>Goodbye</a>"
       end
     end
 
@@ -478,8 +478,8 @@ describe FlavourSaver do
       end
 
       it 'renders correctly' do
-        context.stub(:name).and_return('Alan')
-        subject.should == "Goodbye Alan! goodbye Alan! GOODBYE Alan! "
+        allow(context).to receive(:name).and_return('Alan')
+        expect(subject).to eq "Goodbye Alan! goodbye Alan! GOODBYE Alan! "
       end
     end
 
@@ -492,12 +492,12 @@ describe FlavourSaver do
       end
 
       it 'renders correctly' do
-        context.stub(:prefix).and_return('/root')
+        allow(context).to receive(:prefix).and_return('/root')
         goodbye = double(:goodbye)
-        goodbye.stub(:text).and_return('Goodbye')
-        goodbye.stub(:url).and_return('goodbye')
-        context.stub(:goodbyes).and_return([goodbye])
-        subject.should == "<a href='/root/goodbye'>Goodbye</a>"
+        allow(goodbye).to receive(:text).and_return('Goodbye')
+        allow(goodbye).to receive(:url).and_return('goodbye')
+        allow(context).to receive(:goodbyes).and_return([goodbye])
+        expect(subject).to eq "<a href='/root/goodbye'>Goodbye</a>"
       end
     end
 
@@ -506,12 +506,12 @@ describe FlavourSaver do
 
       example do
         goodbye = double(:goodbye)
-        goodbye.stub(:text).and_return('goodbye')
+        allow(goodbye).to receive(:text).and_return('goodbye')
         inner = double(:inner)
-        inner.stub(:inner).and_return([goodbye])
-        context.stub(:omg).and_return('OMG!')
-        context.stub(:outer).and_return([inner])
-        subject.should == "Goodbye cruel OMG!"
+        allow(inner).to receive(:inner).and_return([goodbye])
+        allow(context).to receive(:omg).and_return('OMG!')
+        allow(context).to receive(:outer).and_return([inner])
+        expect(subject).to eq "Goodbye cruel OMG!"
       end
     end
 
@@ -524,7 +524,7 @@ describe FlavourSaver do
       end
 
       example do
-        context.stub(:world).and_return('world')
+        allow(context).to receive(:world).and_return('world')
       end
     end
 
@@ -537,8 +537,8 @@ describe FlavourSaver do
       end
 
       example do
-        context.stub(:name).and_return('Yehuda')
-        subject.should == "<form><p>Yehuda</p></form>"
+        allow(context).to receive(:name).and_return('Yehuda')
+        expect(subject).to eq "<form><p>Yehuda</p></form>"
       end
     end
 
@@ -551,15 +551,15 @@ describe FlavourSaver do
       end
       example do
         person = Struct.new(:name, :id)
-        context.stub(:people).and_return([person.new('Alan', 1), person.new('Yehuda', 2)])
-        subject.should == "<ul><li><a href=\"/people/1\">Alan</a></li><li><a href=\"/people/2\">Yehuda</a></li></ul>"
+        allow(context).to receive(:people).and_return([person.new('Alan', 1), person.new('Yehuda', 2)])
+        expect(subject).to eq "<ul><li><a href=\"/people/1\">Alan</a></li><li><a href=\"/people/2\">Yehuda</a></li></ul>"
       end
     end
 
     describe 'block helper for undefined value' do
       let(:template) { "{{#empty}}shoulnd't render{{/empty}}" }
       example do
-        -> { subject }.should raise_exception(FlavourSaver::UnknownHelperException)
+        expect { subject }.to raise_exception(FlavourSaver::UnknownHelperException)
       end
     end
 
@@ -571,8 +571,8 @@ describe FlavourSaver do
         end
       end
       example do
-        context.stub_chain(:yehuda,:name).and_return('Yehuda')
-        subject.should == "<form><p>Yehuda</p></form>"
+        allow(context).to receive_message_chain(:yehuda,:name).and_return('Yehuda')
+        expect(subject).to eq "<form><p>Yehuda</p></form>"
       end
     end
 
@@ -585,10 +585,10 @@ describe FlavourSaver do
       end
       example do
         yehuda = double(:yehuda)
-        yehuda.stub(:name).and_return('Yehuda')
-        yehuda.stub_chain(:cat,:name).and_return('Harold')
-        context.stub(:yehuda).and_return(yehuda)
-        subject.should == "<form><p>Harold</p></form>"
+        allow(yehuda).to receive(:name).and_return('Yehuda')
+        allow(yehuda).to receive_message_chain(:cat,:name).and_return('Harold')
+        allow(context).to receive(:yehuda).and_return(yehuda)
+        expect(subject).to eq "<form><p>Harold</p></form>"
       end
     end
 
@@ -603,26 +603,26 @@ describe FlavourSaver do
         end
       end
       example do
-        context.stub_chain(:yehuda,:name).and_return('Yehuda')
-        subject.should == "<form><p>Yehuda</p><a href='Yehuda'>Hello</a></form>"
+        allow(context).to receive_message_chain(:yehuda,:name).and_return('Yehuda')
+        expect(subject).to eq "<form><p>Yehuda</p><a href='Yehuda'>Hello</a></form>"
       end
     end
 
     describe 'block inverted sections' do
       let(:template) { "{{#people}}{{name}}{{^}}{{none}}{{/people}}" }
       example do
-        context.stub(:none).and_return("No people")
-        context.stub(:people).and_return(false)
-        subject.should == "No people"
+        allow(context).to receive(:none).and_return("No people")
+        allow(context).to receive(:people).and_return(false)
+        expect(subject).to eq "No people"
       end
     end
 
     describe 'block inverted sections with empty arrays' do
       let(:template) { "{{#people}}{{name}}{{^}}{{none}}{{/people}}" }
       example do
-        context.stub(:none).and_return('No people')
-        context.stub(:people).and_return([])
-        subject.should == "No people"
+        allow(context).to receive(:none).and_return('No people')
+        allow(context).to receive(:people).and_return([])
+        expect(subject).to eq "No people"
       end
     end
 
@@ -642,24 +642,24 @@ describe FlavourSaver do
 
       example 'an inverse wrapper is passed in as a new context' do
         person = Struct.new(:name)
-        context.stub(:people).and_return([person.new('Alan'),person.new('Yehuda')])
-        subject.should == "<ul><li>Alan</li><li>Yehuda</li></ul>"
+        allow(context).to receive(:people).and_return([person.new('Alan'),person.new('Yehuda')])
+        expect(subject).to eq "<ul><li>Alan</li><li>Yehuda</li></ul>"
       end
 
       example 'an inverse wrapper can optionally be called' do
-        context.stub(:people).and_return([])
-        subject.should == "<p><em>Nobody's here</em></p>"
+        allow(context).to receive(:people).and_return([])
+        expect(subject).to eq "<p><em>Nobody's here</em></p>"
       end
 
       describe 'the context of an inverse is the parent of the block' do
         let(:template) { "{{#list people}}Hello{{^}}{{message}}{{/list}}" }
         example do
-          context.stub(:people).and_return([])
-          context.stub(:message).and_return("Nobody's here")
+          allow(context).to receive(:people).and_return([])
+          allow(context).to receive(:message).and_return("Nobody's here")
           if RUBY_VERSION >= '2.0.0'
-            subject.should == "<p>Nobody&#39;s here</p>"
+            expect(subject).to eq "<p>Nobody&#39;s here</p>"
           else
-            subject.should == "<p>Nobody&#x27;s here</p>"
+            expect(subject).to eq "<p>Nobody&#x27;s here</p>"
           end
         end
       end
@@ -673,8 +673,8 @@ describe FlavourSaver do
     end
     example do
       person = Struct.new(:name, :url)
-      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
-      subject.should == "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
+      allow(context).to receive(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      expect(subject).to eq "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
     end
   end
 
@@ -685,8 +685,8 @@ describe FlavourSaver do
     end
     example "Partials can be passed a context" do
       person = Struct.new(:name, :url)
-      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
-      subject.should == "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
+      allow(context).to receive(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      expect(subject).to eq "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
     end
   end
 
@@ -698,15 +698,15 @@ describe FlavourSaver do
     end
     example "Partials can be passed a context" do
       person = Struct.new(:name, :url)
-      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
-      subject.should == "Dudes: Yehuda <a href='http://yehuda'>http://yehuda</a> Alan <a href='http://alan'>http://alan</a> "
+      allow(context).to receive(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      expect(subject).to eq "Dudes: Yehuda <a href='http://yehuda'>http://yehuda</a> Alan <a href='http://alan'>http://alan</a> "
     end
   end
 
   describe 'rendering undefined partial throws an exception' do
     let(:template) { "{{> whatever}}" }
     example do
-      -> { subject }.should raise_error(FS::UnknownPartialException)
+      expect { subject }.to raise_error(FS::UnknownPartialException)
     end
   end
 
@@ -719,8 +719,8 @@ describe FlavourSaver do
     end
     example do
       person = Struct.new(:name, :url)
-      context.stub(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
-      subject.should == "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
+      allow(context).to receive(:dudes).and_return([person.new('Yehuda', 'http://yehuda'), person.new('Alan', 'http://alan')])
+      expect(subject).to eq "Dudes: Yehuda (http://yehuda) Alan (http://alan) "
     end
   end
 
@@ -730,9 +730,9 @@ describe FlavourSaver do
       FS.register_partial(:dude, "{{name}}")
     end
     example do
-      context.stub(:name).and_return('Jeepers')
-      context.stub(:another_dude).and_return('Creepers')
-      subject.should == "Dudes: Jeepers Creepers"
+      allow(context).to receive(:name).and_return('Jeepers')
+      allow(context).to receive(:another_dude).and_return('Creepers')
+      expect(subject).to eq "Dudes: Jeepers Creepers"
     end
   end
 
@@ -742,9 +742,9 @@ describe FlavourSaver do
       FS.register_partial(:dude, "{{name}}")
     end
     example do
-      context.stub(:name).and_return('Jeepers')
-      context.stub(:another_dude).and_return('Creepers')
-      subject.should == "Dudes: Jeepers"
+      allow(context).to receive(:name).and_return('Jeepers')
+      allow(context).to receive(:another_dude).and_return('Creepers')
+      expect(subject).to eq "Dudes: Jeepers"
     end
   end
 
@@ -754,9 +754,9 @@ describe FlavourSaver do
       FS.register_partial("dude/man", "{{name}}")
     end
     example do
-      context.stub(:name).and_return('Jeepers')
-      context.stub(:another_dude).and_return('Creepers')
-      subject.should == "Dudes: Jeepers"
+      allow(context).to receive(:name).and_return('Jeepers')
+      allow(context).to receive(:another_dude).and_return('Creepers')
+      expect(subject).to eq "Dudes: Jeepers"
     end
   end
 
@@ -773,14 +773,14 @@ describe FlavourSaver do
         end
       end
       example do
-        subject.should == "Message: Hello world 12 times: true false"
+        expect(subject).to eq "Message: Hello world 12 times: true false"
       end
     end
 
     describe 'using a quote in the middle of a parameter raises an error' do
       let(:template) { "Message: {{hello wo\"rld\"}}" }
       example do
-        -> { subject }.should raise_error
+        expect { subject }.to raise_error(RLTK::NotInLanguage)
       end
     end
 
@@ -792,7 +792,7 @@ describe FlavourSaver do
         end
       end
       example do
-        subject.should == 'Message: Hello \"world\"'
+        expect(subject).to eq 'Message: Hello \"world\"'
       end
     end
 
@@ -804,7 +804,7 @@ describe FlavourSaver do
         end
       end
       example do
-        subject.should == "Message: Hello Alan's world"
+        expect(subject).to eq "Message: Hello Alan's world"
       end
     end
 
@@ -815,9 +815,9 @@ describe FlavourSaver do
       let(:template) { "Message: {{goodbye cruel world}}" }
       before { FS.register_helper(:goodbye) { |cruel,world| "Goodbye #{cruel} #{world}" } }
       example do
-        context.stub(:cruel).and_return('cruel')
-        context.stub(:world).and_return('world')
-        subject.should == "Message: Goodbye cruel world"
+        allow(context).to receive(:cruel).and_return('cruel')
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "Message: Goodbye cruel world"
       end
     end
 
@@ -825,9 +825,9 @@ describe FlavourSaver do
       let(:template) { "Message: {{#goodbye cruel world}}{{greeting}} {{adj}} {{noun}}{{/goodbye}}" }
       before { FS.register_helper(:goodbye) { |adj,noun,&b| b.call.contents Struct.new(:greeting,:adj,:noun).new('Goodbye', adj, noun) } }
       example do
-        context.stub(:cruel).and_return('cruel')
-        context.stub(:world).and_return('world')
-        subject.should == "Message: Goodbye cruel world"
+        allow(context).to receive(:cruel).and_return('cruel')
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "Message: Goodbye cruel world"
       end
     end
   end
@@ -836,8 +836,8 @@ describe FlavourSaver do
     describe 'with' do
       let(:template) { "{{#with person}}{{first}} {{last}}{{/with}}" }
       example do
-        context.stub(:person).and_return(Struct.new(:first,:last).new('Alan','Johnson'))
-        subject.should == 'Alan Johnson'
+        allow(context).to receive(:person).and_return(Struct.new(:first,:last).new('Alan','Johnson'))
+        expect(subject).to eq 'Alan Johnson'
       end
     end
 
@@ -845,39 +845,39 @@ describe FlavourSaver do
       let(:template) { "{{#if goodbye}}GOODBYE {{/if}}cruel {{world}}!" }
 
       example 'if with boolean argument shows the contents when true' do
-        context.stub(:goodbye).and_return(true)
-        context.stub(:world).and_return('world')
-        subject.should == "GOODBYE cruel world!"
+        allow(context).to receive(:goodbye).and_return(true)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "GOODBYE cruel world!"
       end
 
       example 'if with string argument shows the contents with true' do
-        context.stub(:goodbye).and_return('dummy')
-        context.stub(:world).and_return('world')
-        subject.should == "GOODBYE cruel world!"
+        allow(context).to receive(:goodbye).and_return('dummy')
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "GOODBYE cruel world!"
       end
 
       example 'if with boolean argument does not show the contents when false' do
-        context.stub(:goodbye).and_return(false)
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(context).to receive(:goodbye).and_return(false)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
 
       example 'if with undefined does not show the contents' do
-        context.stub(:goodbye)
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(context).to receive(:goodbye)
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
 
       example 'if with non-empty array shows the contents' do
-        context.stub(:goodbye).and_return(['foo'])
-        context.stub(:world).and_return('world')
-        subject.should == "GOODBYE cruel world!"
+        allow(context).to receive(:goodbye).and_return(['foo'])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "GOODBYE cruel world!"
       end
 
       example 'if with empty array does not show the contents' do
-        context.stub(:goodbye).and_return([])
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(context).to receive(:goodbye).and_return([])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
     end
 
@@ -886,15 +886,15 @@ describe FlavourSaver do
 
       example 'each with array iterates over the contents with non-empty' do
         g = Struct.new(:text)
-        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
-        context.stub(:world).and_return('world')
-        subject.should == "goodbye! Goodbye! GOODBYE! cruel world!"
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "goodbye! Goodbye! GOODBYE! cruel world!"
       end
 
       example 'each with array ignores the contents when empty' do
-        context.stub(:goodbyes).and_return([])
-        context.stub(:world).and_return('world')
-        subject.should == "cruel world!"
+        allow(context).to receive(:goodbyes).and_return([])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "cruel world!"
       end
     end
 
@@ -903,9 +903,9 @@ describe FlavourSaver do
 
       example 'the @index variable is used' do
         g = Struct.new(:text)
-        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
-        context.stub(:world).and_return('world')
-        subject.should == "0. goodbye! 1. Goodbye! 2. GOODBYE! cruel world!"
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "0. goodbye! 1. Goodbye! 2. GOODBYE! cruel world!"
       end
     end
 
@@ -914,9 +914,9 @@ describe FlavourSaver do
 
       example 'the @last variable is used' do
         g = Struct.new(:text)
-        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
-        context.stub(:world).and_return('world')
-        subject.should == "0. goodbye! 1. Goodbye! 2. GOODBYE! last cruel world!"
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "0. goodbye! 1. Goodbye! 2. GOODBYE! last cruel world!"
       end
     end
 
@@ -925,9 +925,9 @@ describe FlavourSaver do
 
       example 'the first variable is used' do
         g = Struct.new(:text)
-        context.stub(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
-        context.stub(:world).and_return('world')
-        subject.should == "0. goodbye first! 1. Goodbye ! 2. GOODBYE ! cruel world!"
+        allow(context).to receive(:goodbyes).and_return([g.new('goodbye'), g.new('Goodbye'), g.new('GOODBYE')])
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "0. goodbye first! 1. Goodbye ! 2. GOODBYE ! cruel world!"
       end
     end
 
@@ -937,9 +937,9 @@ describe FlavourSaver do
       before { FS.logger = log }
       after  { FS.logger = nil }
       example do
-        context.stub(:blah).and_return('whee')
-        log.should_receive(:debug).with('FlavourSaver: whee')
-        subject.should == ''
+        allow(context).to receive(:blah).and_return('whee')
+        expect(log).to receive(:debug).with('FlavourSaver: whee')
+        expect(subject).to eq ''
       end
     end
   end

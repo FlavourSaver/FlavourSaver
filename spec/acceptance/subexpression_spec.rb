@@ -11,18 +11,18 @@ describe 'Subexpressions' do
   end
   context "simple subexpression" do
     let(:template) { "{{sum 1 (sum 1 1)}}" }
-    specify{subject.should == "3"}
+    specify{expect(subject).to eq "3"}
   end
 
   context "nested subexpressions" do
     let(:template) { "{{sum 1 (sum 1 (sum 1 1))}}" }
-    specify{subject.should == "4"}
+    specify{expect(subject).to eq "4"}
   end
 
   context "subexpression as argument" do
     before {FlavourSaver.register_helper(:cents) { |a| a[:total] + 10}}
     let(:template) { "{{cents total=(sum 1 1)}}" }
-    specify{subject.should == "12"}
+    specify{expect(subject).to eq "12"}
   end
 
   context "subexpression in block" do
@@ -32,7 +32,6 @@ describe 'Subexpressions' do
       s
     end}
     let(:template) { "{{#repeat (sum 1 2)}}*{{/repeat}}" }
-    specify{subject.should == "***"}
+    specify{expect(subject).to eq "***"}
   end
-  
 end

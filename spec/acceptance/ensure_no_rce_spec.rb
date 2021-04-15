@@ -8,7 +8,7 @@ describe "Can't call methods that the context doesn't respond to" do
 
   it 'renders correctly' do
     expect(Kernel).not_to receive(:system)
-    expect { subject }.to raise_error
+    expect { subject }.to raise_error(RuntimeError)
   end
 end
 
@@ -19,7 +19,7 @@ describe "Can't eval arbitrary Ruby code" do
 
   it 'renders correctly' do
     expect(Kernel).not_to receive(:eval)
-    expect { subject }.to raise_error
+    expect { subject }.to raise_error(RuntimeError)
   end
 end
 

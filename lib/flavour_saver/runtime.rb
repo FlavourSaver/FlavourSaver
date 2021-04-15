@@ -46,13 +46,13 @@ module FlavourSaver
     def private_variable_get(name)
       begin
         @privates.fetch(name)
-      rescue KeyError => e
+      rescue KeyError
         raise UndefinedPrivateVariableException, "private variable not found @#{name}"
       end
     end
 
     def strip(tmp_context = nil)
-      self.to_s(tmp_context).gsub(/[\s\r\n]+/,' ').strip
+      self.to_s(tmp_context).gsub(/[\s]+/,' ').strip
     end
 
     def evaluate_node(node)
@@ -256,9 +256,9 @@ module FlavourSaver
             "&#x27;"
           when '"'
             "&quot;"
-            when '`'
-              "&#x60;"
-            end
+          when '`'
+            "&#x60;"
+          end
         end
 
         # Mark it as already escaped if we're in Rails

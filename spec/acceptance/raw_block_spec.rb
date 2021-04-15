@@ -7,6 +7,6 @@ describe 'Fixture: raw.hbs' do
   let(:context)  { double(:context) }
 
   it 'renders correctly' do
-    subject.should == "{{=if brokensyntax}"
+    expect(subject).to eq "{{=if brokensyntax}"
   end
 end

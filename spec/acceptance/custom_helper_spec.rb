@@ -10,6 +10,6 @@ describe 'Fixture: custom_helper.hbs' do
     FlavourSaver.register_helper(:say_what_again) do
       'What?'
     end
-    subject.should == "What?"
+    expect(subject).to eq "What?"
   end
 end

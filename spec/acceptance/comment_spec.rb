@@ -7,6 +7,6 @@ describe 'Fixture: comment.hbs' do
   let(:context)  { double(:context) }
 
   it 'renders correctly' do
-    subject.should == "I am a very nice person!"
+    expect(subject).to eq "I am a very nice person!"
   end
 end

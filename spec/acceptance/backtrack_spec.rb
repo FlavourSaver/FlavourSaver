@@ -9,6 +9,6 @@ describe 'Fixture: backtrack.hbs' do
   it 'renders correctly' do
     context.person = Struct.new(:name).new('Alan')
     context.company = Struct.new(:name).new('Rad, Inc.')
-    subject.should == "Alan - Rad, Inc."
+    expect(subject).to eq "Alan - Rad, Inc."
   end
 end
