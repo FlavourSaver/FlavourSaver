@@ -8,11 +8,12 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.0.0)
+    activesupport (6.1.4.4)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     coderay (1.0.9)
     concurrent-ruby (1.1.9)
     diff-lcs (1.2.4)
@@ -64,12 +65,13 @@ GEM
     tilt (2.0.10)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
+    zeitwerk (2.5.3)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport (~> 7.0)
+  activesupport (< 7.0)
   flavour_saver!
   guard-bundler
   guard-rspec
