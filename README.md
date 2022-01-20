@@ -13,13 +13,6 @@ Rails and on other frameworks (such as Sinatra) via Tilt.
 
 Please use it, break it, and send issues/PR's for improvement.
 
-## Caveat
-
-FlavourSaver is used in production by a lot of folks, none of whom are me.  As
-I don't use FlavourSaver in my daily life I will not be responding to issues
-unless they have a corresponding PR.  If you'd like to take over maintaining
-this project then get in contact.
-
 ## License
 
 FlavourSaver is Copyright (c) 2013 Resistor Limited and licensed under the terms
