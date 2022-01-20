@@ -7,7 +7,7 @@ describe 'Fixture: one_character_identifier.hbs' do
   let(:context)  { double(:context) }
 
   it 'renders correctly' do
-    context.should_receive(:a).and_return('foo')
-    subject.should == "foo"
+    expect(context).to receive(:a).and_return('foo')
+    expect(subject).to eq "foo"
   end
 end

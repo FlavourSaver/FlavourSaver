@@ -18,7 +18,7 @@ describe 'Fixture: custom_block_helper.hbs' do
         end.join ''
       end
       FlavourSaver.register_helper(method(:three_times))
-      subject.should == "1 time. 2 time. 3 time."
+      expect(subject).to eq "1 time. 2 time. 3 time."
     end
   end
 
@@ -29,7 +29,7 @@ describe 'Fixture: custom_block_helper.hbs' do
           b.call.contents i
         end.join ''
       }
-      subject.should == "1 time. 2 time. 3 time."
+      expect(subject).to eq "1 time. 2 time. 3 time."
     end
   end
 end

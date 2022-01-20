@@ -62,7 +62,7 @@ module FlavourSaver
 
       def [](accessor)
         if array?
-          if accessor.match /[0-9]+/
+          if accessor.match?(/[0-9]+/)
             return @source.at(accessor.to_i)
           end
         end
@@ -115,7 +115,5 @@ module FlavourSaver
       helpers = helpers.merge(locals)
       Decorator.new(helpers, context)
     end
-
   end
 end
-

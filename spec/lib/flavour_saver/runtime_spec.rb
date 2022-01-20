@@ -12,7 +12,7 @@ describe FlavourSaver::Runtime do
       let(:template) { "hello world" }
 
       it "concatenates all the nodes items together" do
-        subject.evaluate_node(ast).should == 'hello world'
+        expect(subject.evaluate_node(ast)).to eq 'hello world'
       end
     end
 
@@ -21,7 +21,7 @@ describe FlavourSaver::Runtime do
 
       it "returns the value of OutputNodes" do
         node = ast.items.first
-        subject.evaluate_node(node).should == 'hello world'
+        expect(subject.evaluate_node(node)).to eq 'hello world'
       end
     end
 
@@ -30,7 +30,7 @@ describe FlavourSaver::Runtime do
       let(:node)     { ast.items.select { |n| n.class == FlavourSaver::ExpressionNode }.first.method.first.arguments.first }
 
       it 'returns the value of the string' do
-        subject.evaluate_node(node).should == 'WAT'
+        expect(subject.evaluate_node(node)).to eq 'WAT'
       end
     end
 
@@ -39,13 +39,13 @@ describe FlavourSaver::Runtime do
       let (:template) { "{{foo}}" }
 
       it 'calls evaluate_node with the node' do
-        subject.should_receive(:evaluate_expression).with(node)
+        expect(subject).to receive(:evaluate_expression).with(node)
         subject.evaluate_node(node)
       end
 
       it 'should HTML escape the output' do
-        context.should_receive(:foo).and_return("<html>LOL</html>")
-        subject.evaluate_node(node).should == '&lt;html&gt;LOL&lt;/html&gt;'
+        expect(context).to receive(:foo).and_return("<html>LOL</html>")
+        expect(subject.evaluate_node(node)).to eq '&lt;html&gt;LOL&lt;/html&gt;'
       end
     end
 
@@ -54,8 +54,8 @@ describe FlavourSaver::Runtime do
       let (:template) { "{{{foo}}}" }
 
       it 'should not HTML escape the output' do
-        context.should_receive(:foo).and_return("<html>LOL</html>")
-        subject.evaluate_node(node).should == '<html>LOL</html>'
+        expect(context).to receive(:foo).and_return("<html>LOL</html>")
+        expect(subject.evaluate_node(node)).to eq '<html>LOL</html>'
       end
     end
 
@@ -64,7 +64,7 @@ describe FlavourSaver::Runtime do
       let(:node)     { ast.items.select { |n| n.class == FlavourSaver::CommentNode }.first }
 
       it 'should return zilch' do
-        subject.evaluate_node(node).should == ''
+        expect(subject.evaluate_node(node)).to eq ''
       end
     end
 
@@ -72,8 +72,8 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{#foo}}bar{{/foo}}baz" }
 
       it 'snatches up the block contents and skips them from evaluation' do
-        context.stub(:foo)
-        subject.evaluate_node(ast).should == 'baz'
+        allow(context).to receive(:foo)
+        expect(subject.evaluate_node(ast)).to eq 'baz'
       end
     end
   end
@@ -86,8 +86,8 @@ describe FlavourSaver::Runtime do
       let (:template) { "{{foo}}" }
 
       it 'calls the method and return the result' do
-        context.should_receive(:foo).and_return('foo result')
-        subject.evaluate_expression(expr).should == 'foo result'
+        expect(context).to receive(:foo).and_return('foo result')
+        expect(subject.evaluate_expression(expr)).to eq 'foo result'
       end
     end
 
@@ -95,8 +95,8 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{hello \"world\"}}" }
 
       it 'calls the method with the arguments and return the result' do
-        context.should_receive(:hello).with("world").and_return("hello world")
-        subject.evaluate_expression(expr).should == 'hello world'
+        expect(context).to receive(:hello).with("world").and_return("hello world")
+        expect(subject.evaluate_expression(expr)).to eq 'hello world'
       end
     end
 
@@ -104,9 +104,9 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{hello world}}" }
 
       it 'calls hello & world on the context and return the result' do
-        context.should_receive(:world).and_return('world')
-        context.should_receive(:hello).with('world').and_return('hello world')
-        subject.evaluate_expression(expr).should == 'hello world'
+        expect(context).to receive(:world).and_return('world')
+        expect(context).to receive(:hello).with('world').and_return('hello world')
+        expect(subject.evaluate_expression(expr)).to eq 'hello world'
       end
     end
 
@@ -114,10 +114,10 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{hello (there world)}}" }
 
       it 'calls there & world first, then passes off to hello' do
-        context.should_receive(:world).and_return('world')
-        context.should_receive(:there).with('world').and_return('there world')
-        context.should_receive(:hello).with('there world').and_return('hello there world')
-        subject.evaluate_expression(expr).should == 'hello there world'
+        expect(context).to receive(:world).and_return('world')
+        expect(context).to receive(:there).with('world').and_return('there world')
+        expect(context).to receive(:hello).with('there world').and_return('hello there world')
+        expect(subject.evaluate_expression(expr)).to eq 'hello there world'
       end
     end
 
@@ -125,8 +125,8 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{hello.world}}" }
 
       it 'calls world on the result of hello' do
-        context.stub_chain(:hello, :world).and_return('hello world')
-        subject.evaluate_expression(expr).should == 'hello world'
+        allow(context).to receive_message_chain(:hello, :world).and_return('hello world')
+        expect(subject.evaluate_expression(expr)).to eq 'hello world'
       end
     end
 
@@ -134,8 +134,8 @@ describe FlavourSaver::Runtime do
       let(:template) { "{{[WAT]}}" }
 
       it 'indexes the context with WAT' do
-        context.should_receive(:[]).with('WAT').and_return 'w00t'
-        subject.evaluate_expression(expr).should == 'w00t'
+        expect(context).to receive(:[]).with('WAT').and_return 'w00t'
+        expect(subject.evaluate_expression(expr)).to eq 'w00t'
       end
     end
 
@@ -144,11 +144,11 @@ describe FlavourSaver::Runtime do
 
       it 'indexes the result of hello and calls world on it' do
         world = double(:world)
-        world.should_receive(:world).and_return('vr00m')
+        expect(world).to receive(:world).and_return('vr00m')
         hash = double(:hash)
-        hash.should_receive(:[]).with('WAT').and_return(world)
-        context.should_receive(:hello).and_return(hash)
-        subject.evaluate_expression(expr).should == 'vr00m'
+        expect(hash).to receive(:[]).with('WAT').and_return(world)
+        expect(context).to receive(:hello).and_return(hash)
+        expect(subject.evaluate_expression(expr)).to eq 'vr00m'
       end
     end
 
@@ -156,7 +156,7 @@ describe FlavourSaver::Runtime do
       let (:template) { "{{../foo}}" }
 
       it 'raises an error' do
-        -> { subject.evaluate_expression(expr) }.should raise_error(FlavourSaver::UnknownContextException)
+        expect { subject.evaluate_expression(expr) }.to raise_error(FlavourSaver::UnknownContextException)
       end
     end
 
@@ -164,7 +164,7 @@ describe FlavourSaver::Runtime do
       let (:template) { '{{foo bar="baz"}}' }
 
       it 'receives the argument as a hash' do
-        context.should_receive(:foo).with({:bar => 'baz'})
+        expect(context).to receive(:foo).with({:bar => 'baz'})
         subject.evaluate_expression(expr)
       end
     end
@@ -173,8 +173,8 @@ describe FlavourSaver::Runtime do
       let (:template) { "{{foo bar=baz}}" }
 
       it 'calls the value and returns it\'s result in the hash' do
-        context.should_receive(:baz).and_return('OMGLOLWAT')
-        context.should_receive(:foo).with({:bar => 'OMGLOLWAT'})
+        expect(context).to receive(:baz).and_return('OMGLOLWAT')
+        expect(context).to receive(:foo).with({:bar => 'OMGLOLWAT'})
         subject.evaluate_expression(expr)
       end
     end
@@ -186,15 +186,15 @@ describe FlavourSaver::Runtime do
     let(:block)    { ast.items.first }
 
     it 'creates a new runtime' do
-      subject.should_receive(:create_child_runtime)
-      context.stub(:foo)
+      expect(subject).to receive(:create_child_runtime)
+      allow(context).to receive(:foo)
       subject.evaluate_block(block, context)
     end
   end
 
   describe '#create_child_runtime' do
     it 'creates a new runtime' do
-      subject.create_child_runtime([]).should be_a(FlavourSaver::Runtime)
+      expect(subject.create_child_runtime([])).to be_a(FlavourSaver::Runtime)
     end
   end
 
