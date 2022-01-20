@@ -88,7 +88,7 @@ module FlavourSaver
     end
 
     def register_helper(method,&b)
-      if method.respond_to? :name
+      if !method.is_a?(Symbol) && method.respond_to?(:name)
         registered_helpers[method.name.to_sym] = method
       elsif b
         registered_helpers[method.to_sym] = b
