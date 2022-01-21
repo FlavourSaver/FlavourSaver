@@ -2,6 +2,7 @@
 
 [Handlebars.js](http://handlebarsjs.com) without the `.js`
 
+[![Gem Version](https://badge.fury.io/rb/flavour_saver.svg)](https://badge.fury.io/rb/flavour_saver)
 ![Build Status](https://github.com/FlavourSaver/FlavourSaver/actions/workflows/ci.yml/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/89a99bec5bbf49359081/maintainability)](https://codeclimate.com/github/FlavourSaver/FlavourSaver/maintainability)
 
