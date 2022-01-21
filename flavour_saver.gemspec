@@ -2,11 +2,18 @@
 require File.expand_path('../lib/flavour_saver/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["James Harton"]
-  gem.email         = ["james@resistor.io"]
+  gem.authors       = ["Clayton Passmore", "James Harton"]
+  gem.email         = ["ctpassmore+flavoursaver@gmail.com"]
   gem.description   = %q{FlavourSaver is a pure-ruby implimentation of the Handlebars templating language}
   gem.summary       = %q{Handlebars.js without the .js}
-  gem.homepage      = "http://jamesotron.github.com/FlavourSaver/"
+  gem.homepage      = "http://github.com/FlavourSaver/FlavourSaver"
+  gem.license       = "MIT"
+  gem.metadata      = {
+    "bug_tracker_uri"   => "http://github.com/FlavourSaver/FlavourSaver/issues",
+    "changelog_uri"     => "http://github.com/FlavourSaver/FlavourSaver/blob/master/CHANGELOG.md",
+    "homepage_uri"      => "http://github.com/FlavourSaver/FlavourSaver",
+    "source_code_uri"   => "http://github.com/FlavourSaver/FlavourSaver",
+  }
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
@@ -14,6 +21,8 @@ Gem::Specification.new do |gem|
   gem.name          = "flavour_saver"
   gem.require_paths = ["lib"]
   gem.version       = FlavourSaver::VERSION
+
+  gem.required_ruby_version = ">= 2.6.0"
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec'

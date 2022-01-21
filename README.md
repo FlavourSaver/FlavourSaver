@@ -2,6 +2,7 @@
 
 [Handlebars.js](http://handlebarsjs.com) without the `.js`
 
+[![Gem Version](https://badge.fury.io/rb/flavour_saver.svg)](https://badge.fury.io/rb/flavour_saver)
 ![Build Status](https://github.com/FlavourSaver/FlavourSaver/actions/workflows/ci.yml/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/89a99bec5bbf49359081/maintainability)](https://codeclimate.com/github/FlavourSaver/FlavourSaver/maintainability)
 
@@ -12,13 +13,6 @@ templating language. FlavourSaver supports Handlebars template rendering nativel
 Rails and on other frameworks (such as Sinatra) via Tilt.
 
 Please use it, break it, and send issues/PR's for improvement.
-
-## Caveat
-
-FlavourSaver is used in production by a lot of folks, none of whom are me.  As
-I don't use FlavourSaver in my daily life I will not be responding to issues
-unless they have a corresponding PR.  If you'd like to take over maintaining
-this project then get in contact.
 
 ## License
 
