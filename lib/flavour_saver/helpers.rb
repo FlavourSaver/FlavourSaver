@@ -11,14 +11,15 @@ module FlavourSaver
         r = []
         count = 0
         collection.each do |element|
-          r << yield.contents(
-            element,
-            {
-              'index' => count,
-              'last' => count == collection.size - 1,
-              'first' => count == 0
-            }
-          )
+          locals ={
+            'index' => count,
+            'last' => count == collection.size - 1,
+            'first' => count == 0
+          }
+
+          locals['key'], element = element if collection.is_a?(Hash)
+
+          r << yield.contents(element, locals)
           count += 1
         end
         yield.rendered!
@@ -111,10 +112,10 @@ module FlavourSaver
 
     def decorate_with(context, helper_names=[], locals={})
       helpers = if helper_names.any?
-                  helper_names = helper_names.map(&:to_sym)
-                  registered_helpers.select { |k,v| helper_names.member? k }.merge(locals)
+                  helper_symbols = helper_names.map(&:to_sym)
+                  registered_helpers.select { |k,v| helper_symbols.member? k }
                 else
-                  helpers = registered_helpers
+                  registered_helpers
                 end
       helpers = helpers.merge(locals)
       Decorator.new(helpers, context)

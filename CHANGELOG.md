@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Support for @root object
+* Support for @key object inside #each blocks with Hashes
+
+### Fixed
+
+* Hashes now work with #each blocks
 
 ## [1.0.0] - 2022-01-19
 
