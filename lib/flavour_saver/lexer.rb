@@ -52,7 +52,7 @@ module FlavourSaver
       :GT
     end
 
-    rule /([1-9][0-9]*(\.[0-9]+)?)/, :expression do |n|
+    rule /([0-9]+(\.[0-9]+)?)/, :expression do |n|
       [ :NUMBER, n ]
     end
 
