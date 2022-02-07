@@ -27,6 +27,8 @@ module FlavourSaver
 
       def if(truthy)
         truthy = false if truthy.respond_to?(:size) && (truthy.size == 0)
+        truthy = false if truthy == 0
+
         if truthy
           yield.contents
         else
