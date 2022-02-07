@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Support for @root object
 
+### Fixed
+
+* Zero is now falsy in if/else conditions as it is in Handlebars.js
+
 ## [1.0.0] - 2022-01-19
 
 ### Added
