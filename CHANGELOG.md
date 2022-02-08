@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Support for @root object
+* Support for @key object inside #each blocks with Hashes
 
 ### Fixed
 
 * Zero is now falsy in if/else conditions as it is in Handlebars.js
 * Lex number literals that start with 0
+* Hashes now work with #each blocks
 
 ## [1.0.0] - 2022-01-19
 

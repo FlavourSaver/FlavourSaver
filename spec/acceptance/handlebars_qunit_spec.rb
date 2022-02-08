@@ -964,6 +964,36 @@ describe FlavourSaver do
       end
     end
 
+    describe 'each with @key' do
+      let(:template) { "{{#each goodbyes}}{{@key}}. {{text}}! {{/each}}cruel {{world}}!" }
+
+      example 'the @key variable is used' do
+        g = Struct.new(:text)
+        allow(context).to receive(:goodbyes).and_return({
+          one: g.new('goodbye'),
+          two: g.new('Goodbye'),
+          three: g.new('GOODBYE')
+        })
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "one. goodbye! two. Goodbye! three. GOODBYE! cruel world!"
+      end
+    end
+
+    describe 'each with @key in a nested block' do
+      let(:template) { "{{#each goodbyes}}{{#if @last}}{{@key}}. {{/if}}{{text}}! {{/each}}cruel {{world}}!" }
+
+      example 'the @key variable is used' do
+        g = Struct.new(:text)
+        allow(context).to receive(:goodbyes).and_return({
+          one: g.new('goodbye'),
+          two: g.new('Goodbye'),
+          three: g.new('GOODBYE')
+        })
+        allow(context).to receive(:world).and_return('world')
+        expect(subject).to eq "goodbye! Goodbye! three. GOODBYE! cruel world!"
+      end
+    end
+
     describe 'log' do
       let(:template) { "{{log blah}}" }
       let(:log) { double(:log) }
