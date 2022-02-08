@@ -3,15 +3,46 @@ require 'flavour_saver'
 
 describe 'Fixture: if_else.hbs' do
   subject { Tilt.new(template).render(context).gsub(/[\s\r\n]+/, ' ').strip }
-  let(:context) { Struct.new(:name).new }
+  let(:context) { Struct.new(:value).new }
   let(:template) { File.expand_path('../../fixtures/if_else.hbs', __FILE__) }
 
-  it 'renders correctly when given a name' do
-    context.name = 'Alan'
-    expect(subject).to eq "Say hello to Alan."
+  it "renders the if block when given a string" do
+    context.value = "Alan"
+    expect(subject).to eq "The given value is truthy: Alan."
   end
 
-  it 'renders correctly when not given a name' do
-    expect(subject).to eq "Nobody to say hi to."
+  it "renders the if block when given a number greater than zero" do
+    context.value = 1
+    expect(subject).to eq "The given value is truthy: 1."
+  end
+
+  it "renders the if block when given an array that is not empty" do
+    context.value = [1]
+    expect(subject).to eq "The given value is truthy: [1]."
+  end
+
+  it "renders the else block when given false" do
+    context.value = false
+    expect(subject).to eq "The given value is falsy: false."
+  end
+
+  it 'renders the else block when given nil' do
+    context.value = nil
+    expect(subject).to eq "The given value is falsy: ."
+  end
+
+  it "renders the else block when given an empty string" do
+    context.value = ""
+    expect(subject).to eq "The given value is falsy: ."
+  end
+
+  it "renders the else block when given a zero" do
+    context.value = 0
+    expect(subject).to eq "The given value is falsy: 0."
+  end
+
+  it "renders the else block when given an empty array" do
+    context.value = []
+    expect(subject).to eq "The given value is falsy: []."
   end
 end
