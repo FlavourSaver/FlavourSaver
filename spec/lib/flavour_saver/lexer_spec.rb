@@ -71,7 +71,38 @@ describe FlavourSaver::Lexer do
         it 'has values in the correct order' do
           expect(subject.map(&:value).compact).to eq [ 'foo', 'bar', 'baz', 'hello', 'goodbye' ]
         end
+      end
 
+      describe '{{0}}' do
+        subject { FlavourSaver::Lexer.lex "{{0}}" }
+
+        it 'properly lexes the expression' do
+          expect(subject.map(&:type)).to eq(
+            [:EXPRST, :NUMBER, :EXPRE, :EOS]
+          )
+        end
+
+        it 'contains only the number "0"' do
+          expect(subject[1..-3].size).to eq 1
+          expect(subject[1].type).to eq :NUMBER
+          expect(subject[1].value).to eq '0'
+        end
+      end
+
+      describe '{{0.0123456789}}' do
+        subject { FlavourSaver::Lexer.lex "{{0.0123456789}}" }
+
+        it 'properly lexes the expression' do
+          expect(subject.map(&:type)).to eq(
+            [:EXPRST, :NUMBER, :EXPRE, :EOS]
+          )
+        end
+
+        it 'contains only the number "0.0123456789"' do
+          expect(subject[1..-3].size).to eq 1
+          expect(subject[1].type).to eq :NUMBER
+          expect(subject[1].value).to eq '0.0123456789'
+        end
       end
     end
 
