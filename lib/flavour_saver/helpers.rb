@@ -26,19 +26,16 @@ module FlavourSaver
         r.join ''
       end
 
-      def if(truthy)
-        truthy = false if truthy.respond_to?(:size) && (truthy.size == 0)
-        truthy = false if truthy.respond_to?(:zero?) && truthy.zero?
-
-        if truthy
+      def if(value)
+        if truthy?(value)
           yield.contents
         else
           yield.inverse
         end
       end
 
-      def unless(falsy,&b)
-        self.if(!falsy,&b)
+      def unless(value, &b)
+        self.if(!truthy?(value), &b)
       end
 
       def this
@@ -48,6 +45,16 @@ module FlavourSaver
       def log(message)
         FS.logger.debug("FlavourSaver: #{message}")
         ''
+      end
+
+      private
+
+      # Think of this as a compatability layer to make Ruby conditionals
+      # behave like JavaScript conditionals.
+      def truthy?(value)
+        value = false if value.respond_to?(:size) && (value.size == 0)
+        value = false if value.respond_to?(:zero?) && value.zero?
+        value
       end
     end
 
