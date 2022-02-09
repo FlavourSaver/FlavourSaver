@@ -7,17 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0]
+
+### Breaking Changes
+
+* The #if and #unless helpers now treat zero as falsey (#54, #55)
+* The #unless helper now treats empty objects as falsey (#55)
+* Using #each on a hash now yields the value instead of an array of key, value (#52)
+
 ### Added
 
-* Support for @root object
-* Support for @key object inside #each blocks with Hashes
+* Support for @root object (#49)
+* Support for @key object inside #each blocks with Hashes (#52)
 
 ### Fixed
 
-* Zero is now falsy in if/else conditions as it is in Handlebars.js
-* Lex number literals that start with 0
-* Hashes now work with #each blocks
-* Zero and empty objects are evaluated in unless helper as they are in Handlebars.js
+* Lex number literals that start with 0 (#53)
 
 ## [1.0.0] - 2022-01-19
 
