@@ -406,6 +406,21 @@ describe FlavourSaver do
       end
     end
 
+    describe 'array with numeric dereference' do
+      let(:template) {"{{goodbyes.0.text}} cruel {{world}}!"}
+
+      it 'properly inserts the referenced element' do
+        goodbyes = []
+        goodbyes << double(:goodbye)
+        expect(goodbyes[0]).to receive(:text).and_return('goodbye')
+
+        allow(context).to receive(:goodbyes).and_return(goodbyes)
+        allow(context).to receive(:world).and_return('world')
+
+        expect(subject).to eq "goodbye cruel world!"
+      end
+    end
+
     describe 'empty block' do
       let(:template) { "{{#goodbyes}}{{/goodbyes}}cruel {{world}}!" }
 
