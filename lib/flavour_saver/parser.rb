@@ -128,8 +128,8 @@ module FlavourSaver
       clause('argument_list WHITE hash') { |e0,_,e1| e0 + [e1] }
       clause('hash') { |e| [e] }
     end
-    
-    nonempty_list(:argument_list, [:object_path,:lit, :subexpr], :WHITE)
+
+    nonempty_list(:argument_list, [:object_path, :lit, :subexpr], :WHITE)
 
     production(:lit) do
       clause('string') { |e| e }
@@ -167,7 +167,17 @@ module FlavourSaver
       clause('FWSL') { |_| }
     end
 
-    nonempty_list(:object_path, :object, :object_sep)
+    production(:object_path) do
+      clause('object') { |e| [e] }
+      clause('object_path object_sep object') { |e0,_,e1| e0 + [e1] }
+
+      # Accomodates objects dereferenced with a number like foo.0.text
+      clause('object_path object_sep number_object') { |e0,_,e1| e0 + [e1] }
+    end
+
+    production(:number_object) do
+      clause('NUMBER') { |e| LiteralCallNode.new(e, []) }
+    end
 
     production(:object) do
       clause('AT IDENT') { |_,e| LocalVarNode.new(e) }
