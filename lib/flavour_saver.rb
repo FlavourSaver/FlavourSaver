@@ -17,10 +17,11 @@ module FlavourSaver
     end
 
     ActiveSupport.on_load(:action_view) do
-      handler = proc do |template|
+      handler = proc do |template, source|
+        source ||= template.source
         # I'd rather be caching the Runtime object ready to fire, but apparently I don't get that luxury.
         <<-SOURCE
-        FlavourSaver.evaluate((begin;#{template.source.inspect};end),self)
+        FlavourSaver.evaluate((begin;#{source.inspect};end),self)
         SOURCE
       end
       ActionView::Template.register_template_handler(:hbs, handler)
