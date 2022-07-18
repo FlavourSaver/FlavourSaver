@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2]
+
+### Fixed
+
+* Deprecation warning for template handler (#59)
+
+### Changed
+
+* Relaxed version constraint on activesupport dependency (#60)
+
 ## [2.0.1]
 
 ### Fixed
