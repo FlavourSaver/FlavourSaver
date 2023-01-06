@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Ruby 3.2.0 added to the test matrix
 
-## [2.0.2]
+## 2.0.2
 
 ### Fixed
 
@@ -21,13 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Relaxed version constraint on activesupport dependency (#60)
 
-## [2.0.1]
+## 2.0.1
 
 ### Fixed
 
 * Ability to dereference arrays at a specific index (#57)
 
-## [2.0.0]
+## 2.0.0
 
 ### Breaking Changes
 
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Lex number literals that start with 0 (#53)
 
-## [1.0.0] - 2022-01-19
+## 1.0.0
 
 ### Added
 
