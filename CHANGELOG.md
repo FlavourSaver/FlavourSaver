@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Bumped locked dependency versions
 
+### Removed
+
+* Dropped support for Ruby 2.6
+
 ## 2.0.2
 
 ### Fixed
