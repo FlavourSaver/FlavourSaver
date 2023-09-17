@@ -152,6 +152,29 @@ describe FlavourSaver::Runtime do
       end
     end
 
+    describe 'when called with an path containing array indexes' do
+      let (:template) { "{{hello.[0].[1]}}" }
+
+      it 'indexes the value of a nested array' do
+        array2 = ['w00t', 'vr00m']
+        array = [array2]
+        expect(context).to receive(:hello).and_return(array)
+        expect(subject.evaluate_expression(expr)).to eq 'vr00m'
+      end
+
+      it 'handles non-existent indexes' do
+        world = ['w00t']
+        array = [world]
+        expect(context).to receive(:hello).and_return(array)
+        expect(subject.evaluate_expression(expr)).to eq nil
+      end
+
+      it 'handles calling on nil values' do
+        expect(context).to receive(:hello).and_return(nil)
+        expect(subject.evaluate_expression(expr)).to eq nil
+      end
+    end
+
     describe 'when called with a parent call node without a surrounding block' do
       let (:template) { "{{../foo}}" }
 
