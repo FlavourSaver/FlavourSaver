@@ -75,6 +75,7 @@ module FlavourSaver
       end
 
       def [](accessor)
+        return unless @source
         if array?
           if accessor.match?(/[0-9]+/)
             return @source.at(accessor.to_i)
