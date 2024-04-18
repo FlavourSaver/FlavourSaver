@@ -37,7 +37,7 @@ Or install it yourself as:
 ## Usage
 
 FlavourSaver provides an interface to the amazing
-[Tilt](https://github.com/rtomayko/tilt) templating library, meaning that it
+[Tilt](https://github.com/jeremyevans/tilt) templating library, meaning that it
 should work with anything that has Tilt support (Sinatra, etc) and has a
 native Rails template handler.
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Bump locked development dependencies
+
 ### Added
 
 * Ruby 3.2.0 added to the test matrix
