@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Bumped locked dependency versions
 
+### Fixed
+
+* Handle paths with array indices called on nil context objects (#63)
+
 ### Removed
 
 * Dropped support for Ruby 2.6
