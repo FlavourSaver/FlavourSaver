@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* Ruby 3.2 and 3.3 added to the test matrix
+* Ruby 3.2, 3.3, and 3.4 added to the test matrix
 
 ### Changed
 
