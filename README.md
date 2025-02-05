@@ -6,13 +6,19 @@
 ![Build Status](https://github.com/FlavourSaver/FlavourSaver/actions/workflows/ci.yml/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/89a99bec5bbf49359081/maintainability)](https://codeclimate.com/github/FlavourSaver/FlavourSaver/maintainability)
 
-## WAT?
-
-FlavourSaver is a ruby-based implementation of the [Handlebars.js](http://handlebarsjs.com)
+FlavourSaver is a Ruby-based implementation of the [Handlebars.js](http://handlebarsjs.com)
 templating language. FlavourSaver supports Handlebars template rendering natively on
 Rails and on other frameworks (such as Sinatra) via Tilt.
 
 Please use it, break it, and send issues/PR's for improvement.
+
+## Status
+
+This project is currently in maintenance mode. Here's what this means:
+
+* The maintainers of this project are not actively developing new features
+* Issues and pull requests are still welcome
+* New versions of the gem will be released as changes are merged
 
 ## License
 
@@ -41,7 +47,7 @@ FlavourSaver provides an interface to the amazing
 should work with anything that has Tilt support (Sinatra, etc) and has a
 native Rails template handler.
 
-## Status
+## Features
 
 FlavourSaver is in its infancy, your pull requests are greatly appreciated.
 
