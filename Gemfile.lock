@@ -57,7 +57,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport (< 8.0)
+  activesupport (~> 7.2.0)
   flavour_saver!
   rake
   rspec
