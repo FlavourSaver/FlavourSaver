@@ -92,7 +92,21 @@ module FlavourSaver
         # I would rather have it raise a NameError, but Moustache
         # compatibility requires that missing helpers return
         # nothing. A good place for bugs to hide.
-        @source.send(name, *args, &b) if @source.respond_to? name
+        #
+        # SECURITY: public_send here is load-bearing, not stylistic. Do not
+        # change it back to send.
+        #
+        # Private Kernel methods -- system, eval, exec, fork -- are deliberately
+        # not refused by Runtime#forbidden_method?, because refusing them would
+        # also refuse the ~60 context methods that share a name with one. They
+        # are safe because they cannot be reached: public_send skips them, so
+        # they arrive here, and this call skips them again.
+        #
+        # That makes this the only thing standing between a context that
+        # overreports respond_to? -- a proxy or delegator answering true to
+        # everything -- and arbitrary command execution. Reverting it to send
+        # reopens {{system "..."}} on such a context; verified, not theorised.
+        @source.public_send(name, *args, &b) if @source.respond_to? name
       end
     end
 

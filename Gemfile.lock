@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    flavour_saver (4.0.0)
+    flavour_saver (4.0.1)
       rltk (< 3.0)
       tilt (~> 2.6)
 

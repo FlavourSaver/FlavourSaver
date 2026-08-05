@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 4.0.1
+
+### Security
+
+* Fixed arbitrary code execution via template method dispatch
+  ([GHSA-98g2-gr9f-f85r](https://github.com/FlavourSaver/FlavourSaver/security/advisories/GHSA-98g2-gr9f-f85r)).
+  A bare Handlebars identifier was dispatched to the rendering context with
+  `public_send`, and Ruby's metaprogramming methods are public on every object, so a
+  template containing `{{instance_eval "..."}}` executed arbitrary Ruby in the host
+  process. Anyone able to author or edit a template could run code as the application.
+
+  **All releases up to and including 4.0.0 are affected.** The fix for OSVDB #110796
+  guarded dispatch with `respond_to?`. That never blocked public `Object` methods, so
+  `{{instance_eval "..."}}` was reachable before and after it, and it could be sidestepped
+  entirely with `{{send "system" "ls"}}`. It stopped `{{system "ls"}}` only for context
+  objects that report their methods honestly — against a proxy or delegator that
+  overreports `respond_to?`, that payload kept working in every release. This release is
+  what closes it.
+
+  Reported by Arpit Jain ([@arpitjain099](https://github.com/arpitjain099)).
+
+### Changed
+
+* Templates may now only dispatch to methods the application deliberately made
+  available: registered helpers, locals, FlavourSaver's own block helpers, and the
+  context object's own API. Anything else — Ruby's inherited object surface, methods
+  a framework has mixed into `Object`, and FlavourSaver's internal plumbing — raises
+  `FlavourSaver::ForbiddenMethodException`, a subclass of `UnknownHelperException`, so
+  existing rescue clauses continue to catch it.
+
+  Templates using `{{class}}`, `{{hash}}`, `{{method}}`, `{{display}}` and similar will
+  now raise instead of rendering. Such templates could not have been working correctly:
+  `Helpers::Decorator` inherits those methods, so its own implementation already shadowed
+  any same-named method on the context object — `{{hash}}` returned an object digest and
+  `{{display}}` printed the decorator to stdout rather than returning your data.
+
+  Context methods sharing a name with a *private* `Kernel` method — `format`, `open`,
+  `select`, `print`, `test`, `load` and around sixty others — are unaffected and continue
+  to dispatch as before.
+
+  To read a data field named after an `Object` method, use the segment literal syntax
+  (`{{[hash]}}`), which resolves through `Decorator#[]` and so needs a hash-like context,
+  or register an explicit helper.
+
 ## 4.0.0
 
 ### Added

@@ -6,6 +6,7 @@ module FlavourSaver
   InappropriateUseOfElseException   = Class.new(StandardError)
   UndefinedPrivateVariableException = Class.new(StandardError)
   UnknownHelperException            = Class.new(RuntimeError)
+  ForbiddenMethodException          = Class.new(UnknownHelperException)
   class Runtime
 
     attr_accessor :context, :parent, :ast, :privates
@@ -128,6 +129,9 @@ module FlavourSaver
       when LocalVarNode
         result = private_variable_get(call.name)
       else
+        if forbidden_method? context, call.name
+          raise ForbiddenMethodException, "Refusing to call #{call.name.inspect} from a template: it isn't a helper, a local, or part of the template context's own API. Register a helper if you meant to expose it, or use #{"{{[#{call.name}]}}"} to read a data field of that name."
+        end
         if call.parent.is_a? BlockExpressionNode and !context.respond_to? call.name
           raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}."
         end
@@ -238,6 +242,56 @@ module FlavourSaver
     end
 
     private
+
+    # True unless +name+ resolves to something the application deliberately
+    # made available to templates.
+    #
+    # This is an allowlist of *owners* rather than a denylist of names, because
+    # a name denylist cannot be made complete. Object's inherited API is the
+    # obvious hazard (instance_eval, send, instance_exec), but it is not the
+    # whole of it: ActiveSupport mixes Object#try in from its own module and it
+    # forwards to public_send, and Decorator#method_missing is public and
+    # forwards to the context. Neither appears in Object.instance_methods.
+    #
+    # Only two things are legitimately dispatchable on the decorator itself:
+    # helpers and locals, which live on a module extended onto this runtime's
+    # decorator and so are absent from Decorator.ancestors; and FlavourSaver's
+    # own helpers, which Defaults owns. Everything else defined on the
+    # decorator is either Object's ambient surface or the decorator's internal
+    # plumbing, and neither is template surface.
+    #
+    # A name the decorator doesn't define at all raises NameError here, which
+    # means it will be delegated to the context object by method_missing --
+    # ordinary template dispatch, and allowed.
+    #
+    # Only *publicly* reachable names are refused. #method resolves private
+    # methods too, and refusing those as well would break every context method
+    # sharing a name with a private Kernel method -- format, open, select,
+    # print, test, load and some sixty others, all of which dispatch fine
+    # today. They aren't reachable through public_send in any case: they fall
+    # through to method_missing, which is guarded by its own use of
+    # public_send.
+    def forbidden_method?(context, name)
+      owner = begin
+                context.method(name).owner
+              rescue NameError
+                return false
+              end
+
+      return false if owner.equal? Helpers::Defaults
+      return false unless Helpers::Decorator.ancestors.include? owner
+
+      begin
+        context.singleton_class.public_method_defined? name
+      rescue TypeError
+        # Integer, Symbol and Float have no singleton class. A primitive can't
+        # carry a singleton method, so a name that resolved on one is
+        # necessarily inherited -- refuse it. Reached only if a primitive is
+        # ever passed here undecorated; the decorator wrapping in evaluate_call
+        # normally prevents that, but the predicate must be correct on its own.
+        true
+      end
+    end
 
     def escape(output)
       if output.respond_to?(:html_safe) && output.html_safe?
