@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    flavour_saver (4.0.1)
+    flavour_saver (4.0.2)
       rltk (< 3.0)
       tilt (~> 2.6)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.2.3.1)
+    activesupport (7.2.3.2)
       base64
       benchmark (>= 0.3)
       bigdecimal
@@ -22,34 +22,34 @@ GEM
       tzinfo (~> 2.0, >= 2.0.5)
     base64 (0.3.0)
     benchmark (0.5.0)
-    bigdecimal (4.1.0)
-    concurrent-ruby (1.3.6)
+    bigdecimal (4.1.2)
+    concurrent-ruby (1.3.8)
     connection_pool (2.5.5)
-    diff-lcs (1.5.1)
+    diff-lcs (1.6.2)
     drb (2.2.3)
     ffi (1.17.4)
-    i18n (1.14.8)
+    i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     logger (1.7.0)
     minitest (5.27.0)
-    rake (13.2.1)
+    rake (13.4.2)
     rltk (2.2.1)
       ffi (>= 1.0.0)
-    rspec (3.13.0)
+    rspec (3.13.2)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
       rspec-mocks (~> 3.13.0)
-    rspec-core (3.13.2)
+    rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
-    rspec-expectations (3.13.3)
+    rspec-expectations (3.13.5)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-mocks (3.13.2)
+    rspec-mocks (3.13.8)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-support (3.13.2)
+    rspec-support (3.13.7)
     securerandom (0.4.1)
-    tilt (2.7.0)
+    tilt (2.8.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
 
