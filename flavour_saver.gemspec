@@ -28,6 +28,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "activesupport", "~> 7.2.0"
 
-  gem.add_dependency "rltk", "< 3.0"
   gem.add_dependency "tilt", "~> 2.6"
 end

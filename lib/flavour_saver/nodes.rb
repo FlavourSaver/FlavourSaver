@@ -1,9 +1,53 @@
-require 'rltk'
-require 'rltk/ast'
-require 'flavour_saver/nodes'
-
 module FlavourSaver
-  class Node < RLTK::ASTNode
+  class Node
+    # Fields are declared as either values (plain data) or children (nodes,
+    # or arrays of nodes, which get their #parent set). The constructor takes
+    # every value, then every child, positionally, inherited ones first.
+    class << self
+      def value(name, _type = nil)
+        value_names << name
+        attr_accessor name
+      end
+
+      def child(name, _type = nil)
+        child_names << name
+        attr_reader name
+        ivar = :"@#{name}"
+        define_method(:"#{name}=") do |node|
+          Array(node).each { |n| n.parent = self } unless node.is_a?(Hash)
+          instance_variable_set(ivar, node)
+        end
+      end
+
+      def value_names
+        @value_names ||= superclass.respond_to?(:value_names) ? superclass.value_names.dup : []
+      end
+
+      def child_names
+        @child_names ||= superclass.respond_to?(:child_names) ? superclass.child_names.dup : []
+      end
+    end
+
+    attr_accessor :parent
+
+    def initialize(*fields)
+      names = self.class.value_names + self.class.child_names
+      raise ArgumentError, "#{self.class} takes at most #{names.size} fields" if fields.size > names.size
+      names.each_with_index { |name, i| public_send(:"#{name}=", fields[i]) }
+    end
+
+    def values
+      self.class.value_names.map { |name| public_send(name) }
+    end
+
+    def children
+      self.class.child_names.map { |name| public_send(name) }
+    end
+
+    def ==(other)
+      other.class == self.class && other.values == values && other.children == children
+    end
+
     def inspect
       to_s.inspect
     end
