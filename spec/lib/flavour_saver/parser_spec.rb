@@ -263,6 +263,10 @@ describe FlavourSaver::Parser do
     it 'raises a syntax error' do
       expect { subject }.to raise_error(FlavourSaver::Parser::NotInLanguage)
     end
+
+    it 'is a FlavourSaver::Error' do
+      expect { subject }.to raise_error(FlavourSaver::Error)
+    end
   end
 
   describe '{{#foo}}' do
@@ -286,6 +290,10 @@ describe FlavourSaver::Parser do
 
     it 'raises a syntax error' do
       expect { subject }.to raise_error(FlavourSaver::Parser::UnbalancedBlockError)
+    end
+
+    it 'is a FlavourSaver::Error' do
+      expect { subject }.to raise_error(FlavourSaver::Error)
     end
   end
 

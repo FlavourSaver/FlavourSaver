@@ -15,12 +15,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   AST base class are now part of FlavourSaver itself; `tilt` is the only
   runtime dependency. Parsing is about five times faster.
 
+### Added
+
+* `FlavourSaver::Error`, a common base class for the errors raised by an
+  invalid template: `FlavourSaver::Lexer::LexingError`,
+  `FlavourSaver::Parser::NotInLanguage` and
+  `FlavourSaver::Parser::UnbalancedBlockError`.
+
 ### Changed
 
 * Syntax errors raise `FlavourSaver::Parser::NotInLanguage` instead of
   `RLTK::NotInLanguage`, and unlexable input raises
-  `FlavourSaver::Lexer::LexingError` instead of `RLTK::LexingError`. The error
-  now includes the input the lexer couldn't match.
+  `FlavourSaver::Lexer::LexingError` instead of `RLTK::LexingError`. The
+  `LexingError` message now quotes the first 50 characters of the input the
+  lexer couldn't match.
+
+  **Migrating:** a `rescue RLTK::NotInLanguage` or `rescue RLTK::LexingError`
+  now raises `NameError` when an exception reaches it, because Ruby only looks
+  up the constants in a `rescue` clause at that point. Replace them with
+  `rescue FlavourSaver::Error`, which also catches
+  `FlavourSaver::Parser::UnbalancedBlockError` (raised for a closing tag with
+  no matching opening, such as `{{#foo}}{{#bar}}{{/foo}}`).
 * `FlavourSaver::Lexer`, `FlavourSaver::Parser` and `FlavourSaver::Node` no
   longer inherit from RLTK classes. Tokens respond to `type` and `value` but
   no longer carry a `position`.

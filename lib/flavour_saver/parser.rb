@@ -1,3 +1,4 @@
+require 'flavour_saver/error'
 require 'flavour_saver/nodes'
 
 module FlavourSaver
@@ -24,9 +25,9 @@ module FlavourSaver
   #   object        := AT IDENT | IDENT | LITERAL | (DOT DOT FWSL)+ (IDENT | LITERAL)
   #   lit           := STRING | S_STRING | NUMBER | BOOL
   class Parser
-    class UnbalancedBlockError < StandardError; end
+    class UnbalancedBlockError < Error; end
 
-    class NotInLanguage < StandardError
+    class NotInLanguage < Error
       def initialize(message = 'String not in language.')
         super
       end

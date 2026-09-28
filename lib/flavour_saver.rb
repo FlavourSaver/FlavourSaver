@@ -1,4 +1,5 @@
 require "flavour_saver/version"
+require "flavour_saver/error"
 require 'tilt'
 
 module FlavourSaver

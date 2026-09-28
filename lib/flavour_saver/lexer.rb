@@ -1,10 +1,14 @@
 require 'strscan'
+require 'flavour_saver/error'
 
 module FlavourSaver
   class Lexer
     Token = Struct.new(:type, :value)
 
-    class LexingError < StandardError; end
+    class LexingError < Error; end
+
+    # How much of the unmatched input a LexingError message quotes.
+    ERROR_EXCERPT_LENGTH = 50
 
     Rule = Struct.new(:pattern, :action)
 
@@ -32,7 +36,7 @@ module FlavourSaver
       until scanner.eos?
         match, rule = longest_match(scanner)
         unless rule
-          raise LexingError, "Unable to match string with any of the given rules: #{scanner.rest}"
+          raise LexingError, "Unable to match string with any of the given rules: #{excerpt(scanner.rest)}"
         end
 
         scanner.pos += match.bytesize
@@ -213,6 +217,10 @@ module FlavourSaver
         best = [text, rule] if text && (best.nil? || best.first.length < text.length)
       end
       best
+    end
+
+    def excerpt(rest)
+      rest.length > ERROR_EXCERPT_LENGTH ? "#{rest[0, ERROR_EXCERPT_LENGTH]}..." : rest
     end
 
     def state

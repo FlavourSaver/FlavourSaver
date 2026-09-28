@@ -262,5 +262,17 @@ describe FlavourSaver::Lexer do
     it "raises a lexing error naming the unmatched input" do
       expect { subject }.to raise_error(FlavourSaver::Lexer::LexingError, /: %}}\z/)
     end
+
+    it "is a FlavourSaver::Error" do
+      expect { subject }.to raise_error(FlavourSaver::Error)
+    end
+  end
+
+  describe "an unlexable expression followed by a long template" do
+    subject { FlavourSaver::Lexer.lex "{{foo %}}#{"x" * 1000}" }
+
+    it "quotes only the start of the unmatched input" do
+      expect { subject }.to raise_error(FlavourSaver::Lexer::LexingError, /: %}}x{47}\.\.\.\z/)
+    end
   end
 end
