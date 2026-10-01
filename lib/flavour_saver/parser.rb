@@ -38,6 +38,12 @@ module FlavourSaver
     OBJECT_STARTS = [:AT, :IDENT, :LITERAL, :DOT]
     ARGUMENT_STARTS = [*OBJECT_STARTS, *LITERALS, :OPAR]
 
+    # How deeply blocks and subexpressions may nest, counted together. Each
+    # level recurses through several methods, so without a limit a deep
+    # template raises SystemStackError, which isn't a FlavourSaver::Error.
+    # A Fiber's stack overflows at about 180 levels, so this leaves headroom.
+    MAX_DEPTH = 100
+
     def self.parse(tokens)
       new.parse(tokens)
     end
@@ -45,6 +51,7 @@ module FlavourSaver
     def parse(tokens)
       @tokens = tokens
       @pos = 0
+      @depth = 0
       template = parse_template
       expect(:EOS)
       raise NotInLanguage unless @pos == @tokens.size
@@ -111,35 +118,37 @@ module FlavourSaver
     end
 
     def parse_block
-      expect(:EXPRST)
-      inverted = advance.type == :HAT
-      skip(:WHITE)
-      name = expect(:IDENT).value
-      arguments = []
-      if peek == :WHITE && peek(1) != :EXPRE
-        advance
-        arguments = parse_arguments
-      end
-      skip(:WHITE)
-      expect(:EXPRE)
-      opener = CallNode.new(name, arguments)
+      nested do
+        expect(:EXPRST)
+        inverted = advance.type == :HAT
+        skip(:WHITE)
+        name = expect(:IDENT).value
+        arguments = []
+        if peek == :WHITE && peek(1) != :EXPRE
+          advance
+          arguments = parse_arguments
+        end
+        skip(:WHITE)
+        expect(:EXPRE)
+        opener = CallNode.new(name, arguments)
 
-      contents = parse_template
-      alternate = nil
-      if else?
-        parse_else
-        alternate = parse_template
-      end
-      closer = parse_block_end(opener)
+        contents = parse_template
+        alternate = nil
+        if else?
+          parse_else
+          alternate = parse_template
+        end
+        closer = parse_block_end(opener)
 
-      if inverted
-        # An inverted section renders its body when the value is falsy, so
-        # the body is the alternate and the {{else}} part (if any) the contents.
-        BlockExpressionNodeWithElse.new([opener], alternate || TemplateNode.new([]), closer, contents)
-      elsif alternate
-        BlockExpressionNodeWithElse.new([opener], contents, closer, alternate)
-      else
-        BlockExpressionNode.new([opener], contents, closer)
+        if inverted
+          # An inverted section renders its body when the value is falsy, so
+          # the body is the alternate and the {{else}} part (if any) the contents.
+          BlockExpressionNodeWithElse.new([opener], alternate || TemplateNode.new([]), closer, contents)
+        elsif alternate
+          BlockExpressionNodeWithElse.new([opener], contents, closer, alternate)
+        else
+          BlockExpressionNode.new([opener], contents, closer)
+        end
       end
     end
 
@@ -247,10 +256,12 @@ module FlavourSaver
     end
 
     def parse_subexpression
-      expect(:OPAR)
-      call = parse_contents
-      expect(:CPAR)
-      call
+      nested do
+        expect(:OPAR)
+        call = parse_contents
+        expect(:CPAR)
+        call
+      end
     end
 
     def parse_hash
@@ -313,6 +324,16 @@ module FlavourSaver
       else
         raise NotInLanguage
       end
+    end
+
+    def nested
+      @depth += 1
+      if @depth > MAX_DEPTH
+        raise NotInLanguage, "Blocks and subexpressions can't be nested more than #{MAX_DEPTH} levels deep."
+      end
+      yield
+    ensure
+      @depth -= 1
     end
 
     # {{else}}, {{^}} or {{ ^ }}, but not the inverted section {{^foo}}.
