@@ -1,26 +1,19 @@
-require 'flavour_saver/error'
-
 module FlavourSaver
   class Node
-    class TypeMismatch < Error; end
+    class TypeMismatch < StandardError; end
 
     # Fields are declared as either values (plain data) or children (nodes,
     # or arrays of nodes, which get their #parent set). The constructor takes
     # every value, then every child, positionally, inherited ones first.
-    #
-    # Each field has a type: a class, which the field must be an instance of
-    # or nil, or a class in an array, such as [CallNode], which the field must
-    # be an array of. Setting a field to anything else raises TypeMismatch.
+    # A field's type is a class (nil is also allowed) or a class in an array,
+    # such as [CallNode].
     @value_names = []
     @child_names = []
 
     class << self
       attr_reader :value_names, :child_names
 
-      # Copy the field lists when the subclass is defined, as RLTK did, rather
-      # than the first time they're read. Otherwise whether a subclass picks up
-      # a field added to its parent later depends on whether anything has read
-      # the subclass's fields yet.
+      # Copy the parent's fields now, not on first read, so they can't depend on read order.
       def inherited(subclass)
         super
         subclass.instance_variable_set(:@value_names, value_names.dup)

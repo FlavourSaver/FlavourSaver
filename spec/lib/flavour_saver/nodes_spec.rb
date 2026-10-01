@@ -57,8 +57,8 @@ describe FlavourSaver::Node do
       expect { call.name = 1 }.to raise_error(FlavourSaver::Node::TypeMismatch)
     end
 
-    it 'is a FlavourSaver::Error' do
-      expect(FlavourSaver::Node::TypeMismatch).to be < FlavourSaver::Error
+    it 'is a StandardError, as RLTK::TypeMismatch was' do
+      expect(FlavourSaver::Node::TypeMismatch.superclass).to eq StandardError
     end
   end
 
