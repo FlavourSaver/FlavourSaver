@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `FlavourSaver::Lexer`, `FlavourSaver::Parser` and `FlavourSaver::Node` no
   longer inherit from RLTK classes. Tokens respond to `type` and `value` but
   no longer carry a `position`.
+* A template that nests blocks and subexpressions more than 100 levels deep
+  (`FlavourSaver::Parser::MAX_DEPTH`) raises
+  `FlavourSaver::Parser::NotInLanguage`. Deeper templates used to overflow the
+  stack and raise `SystemStackError`, which `rescue FlavourSaver::Error` doesn't
+  catch. Inside a Fiber that happened at fewer than 200 levels.
 * RLTK's core-class monkey patches (`Object#returning`, `TrueClass#to_i`,
   `FalseClass#to_i`, `Integer#to_bool`, `Class#subclass_of?` and friends) are
   no longer loaded into applications that use FlavourSaver.
