@@ -1,10 +1,6 @@
 require 'flavour_saver/lexer'
 
 describe FlavourSaver::Lexer do
-  it 'is an RLTK lexer' do
-    expect(subject).to be_a(RLTK::Lexer)
-  end
-
   describe 'Tokens' do
     describe 'Expressions' do
       describe '{{foo}}' do
@@ -258,6 +254,25 @@ describe FlavourSaver::Lexer do
       it 'has tokens in the correct order' do
         expect(subject.map(&:type)).to eq [:OUT,:EOS]
       end
+    end
+  end
+  describe "{{foo %}}" do
+    subject { FlavourSaver::Lexer.lex "{{foo %}}" }
+
+    it "raises a lexing error naming the unmatched input" do
+      expect { subject }.to raise_error(FlavourSaver::Lexer::LexingError, /: %}}\z/)
+    end
+
+    it "is a FlavourSaver::Error" do
+      expect { subject }.to raise_error(FlavourSaver::Error)
+    end
+  end
+
+  describe "an unlexable expression followed by a long template" do
+    subject { FlavourSaver::Lexer.lex "{{foo %}}#{"x" * 1000}" }
+
+    it "quotes only the start of the unmatched input" do
+      expect { subject }.to raise_error(FlavourSaver::Lexer::LexingError, /: %}}x{47}\.\.\.\z/)
     end
   end
 end

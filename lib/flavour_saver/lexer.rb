@@ -1,7 +1,51 @@
-require 'rltk'
+require 'strscan'
+require 'flavour_saver/error'
 
 module FlavourSaver
-  class Lexer < RLTK::Lexer
+  class Lexer
+    Token = Struct.new(:type, :value)
+
+    class LexingError < Error; end
+
+    # How much of the unmatched input a LexingError message quotes.
+    ERROR_EXCERPT_LENGTH = 50
+
+    Rule = Struct.new(:pattern, :action)
+
+    # Rules are grouped by lexer state. At each position every rule for the
+    # current state is tried and the longest match wins; on a tie the rule
+    # defined first wins. An action returns nil (no token), a token type, or
+    # a [type, value] pair.
+    def self.rules
+      @rules ||= Hash.new { |h, k| h[k] = [] }
+    end
+
+    def self.rule(pattern, state = :default, &action)
+      rules[state] << Rule.new(pattern, action || proc {})
+    end
+
+    def self.lex(template)
+      new.lex(template)
+    end
+
+    def lex(template)
+      @states = [:default]
+      tokens = []
+      scanner = StringScanner.new(template)
+
+      until scanner.eos?
+        match, rule = longest_match(scanner)
+        unless rule
+          raise LexingError, "Unable to match string with any of the given rules: #{excerpt(scanner.rest)}"
+        end
+
+        scanner.pos += match.bytesize
+        type, value = instance_exec(match, &rule.action)
+        tokens << Token.new(type, value) if type
+      end
+
+      tokens << Token.new(:EOS)
+    end
 
      # seems to have problem with hash symbol in regex
     rule /\{\{\{\{raw\}\}\}\}/, :default do
@@ -162,6 +206,35 @@ module FlavourSaver
 
     rule /.*?(?={{|\z)/m, :default do |output|
       [ :OUT, output ]
+    end
+
+    private
+
+    def longest_match(scanner)
+      best = nil
+      self.class.rules[state].each do |rule|
+        text = scanner.check(rule.pattern)
+        best = [text, rule] if text && (best.nil? || best.first.length < text.length)
+      end
+      best
+    end
+
+    def excerpt(rest)
+      rest.length > ERROR_EXCERPT_LENGTH ? "#{rest[0, ERROR_EXCERPT_LENGTH]}..." : rest
+    end
+
+    def state
+      @states.last
+    end
+
+    def push_state(state)
+      @states.push(state)
+      nil
+    end
+
+    def pop_state
+      @states.pop
+      nil
     end
   end
 end

@@ -45,4 +45,17 @@ describe 'Fixture: unless.hbs' do
     context.value = [1]
     expect(subject).to eq "The given value is truthy: [1]."
   end
+  describe "an inverted section with an else" do
+    subject { FlavourSaver.evaluate("{{^value}}falsy{{else}}truthy{{/value}}", context) }
+
+    it "renders the body when the value is falsy" do
+      context.value = false
+      expect(subject).to eq "falsy"
+    end
+
+    it "renders the else section when the value is truthy" do
+      context.value = true
+      expect(subject).to eq "truthy"
+    end
+  end
 end

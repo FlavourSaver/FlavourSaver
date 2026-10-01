@@ -4,10 +4,6 @@ require 'flavour_saver/lexer'
 describe FlavourSaver::Parser do
   let (:items) { subject.items }
 
-  it 'is a RLTK::Parser' do
-    expect(subject).to be_a(RLTK::Parser)
-  end
-
   describe 'HTML template' do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('<html><h1>Hello world!</h1></html>')) }
 
@@ -217,7 +213,7 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{foo bar="baz" fred "wilma"}}')) }
 
     it 'raises an exception' do
-      expect { subject }.to raise_exception(RLTK::NotInLanguage)
+      expect { subject }.to raise_exception(FlavourSaver::Parser::NotInLanguage)
     end
   end
 
@@ -265,7 +261,11 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{/foo}}')) }
 
     it 'raises a syntax error' do
-      expect { subject }.to raise_error(RLTK::NotInLanguage)
+      expect { subject }.to raise_error(FlavourSaver::Parser::NotInLanguage)
+    end
+
+    it 'is a FlavourSaver::Error' do
+      expect { subject }.to raise_error(FlavourSaver::Error)
     end
   end
 
@@ -273,7 +273,7 @@ describe FlavourSaver::Parser do
     subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex('{{#foo}}')) }
 
     it 'raises a syntax error' do
-      expect { subject }.to raise_error(RLTK::NotInLanguage)
+      expect { subject }.to raise_error(FlavourSaver::Parser::NotInLanguage)
     end
   end
 
@@ -290,6 +290,10 @@ describe FlavourSaver::Parser do
 
     it 'raises a syntax error' do
       expect { subject }.to raise_error(FlavourSaver::Parser::UnbalancedBlockError)
+    end
+
+    it 'is a FlavourSaver::Error' do
+      expect { subject }.to raise_error(FlavourSaver::Error)
     end
   end
 
@@ -345,6 +349,25 @@ describe FlavourSaver::Parser do
       expect(items.first.method.first.arguments.first.value).to eq 'bar'
       expect(items.first.method.first.arguments.last).to be_a(Hash)
       expect(items.first.method.first.arguments.last).to eq({ :fred => FlavourSaver::StringNode.new('wilma') })
+    end
+  end
+  describe "{{^foo}}falsy{{else}}truthy{{/foo}}" do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{^foo}}falsy{{else}}truthy{{/foo}}")) }
+
+    it "renders the {{else}} section when foo is truthy and the body when it is falsy" do
+      expect(items.first).to be_a(FlavourSaver::BlockExpressionNodeWithElse)
+      expect(items.first.contents.items.map(&:value)).to eq ["truthy"]
+      expect(items.first.alternate.items.map(&:value)).to eq ["falsy"]
+    end
+  end
+
+  describe "{{#foo bar}}{{/foo}}" do
+    subject { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex("{{#foo bar}}{{/foo}}")) }
+
+    it "links each call to the node that contains it" do
+      expect(items.first.method.first.parent).to eq items.first
+      expect(items.first.method.first.arguments.first.first.parent).to be_nil
+      expect(items.first.parent).to eq subject
     end
   end
 end

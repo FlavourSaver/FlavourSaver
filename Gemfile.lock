@@ -2,7 +2,6 @@ PATH
   remote: .
   specs:
     flavour_saver (4.0.2)
-      rltk (< 3.0)
       tilt (~> 2.6)
 
 GEM
@@ -27,14 +26,11 @@ GEM
     connection_pool (2.5.5)
     diff-lcs (1.6.2)
     drb (2.2.3)
-    ffi (1.17.4)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     logger (1.7.0)
     minitest (5.27.0)
     rake (13.4.2)
-    rltk (2.2.1)
-      ffi (>= 1.0.0)
     rspec (3.13.2)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)

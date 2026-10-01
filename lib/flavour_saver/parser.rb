@@ -1,202 +1,361 @@
-require 'rltk'
-require 'rltk/ast'
+require 'flavour_saver/error'
 require 'flavour_saver/nodes'
 
 module FlavourSaver
-  class Parser < RLTK::Parser
+  # Recursive descent parser for the token stream produced by Lexer.
+  #
+  #   template      := (OUT | raw_block | expression)*
+  #   raw_block     := RAWSTART RAWSTRING RAWEND
+  #   expression    := block | expr | comment | safe_expr | partial
+  #   block         := block_start template [else template] block_end
+  #   block_start   := EXPRST (HASH | HAT) WHITE? IDENT [WHITE arguments] WHITE? EXPRE
+  #   else          := EXPRST WHITE? (ELSE | HAT) WHITE? EXPRE
+  #   block_end     := EXPRST FWSL WHITE? IDENT WHITE? EXPRE
+  #   expr          := EXPRST contents EXPRE
+  #   safe_expr     := TEXPRST contents TEXPRE | EXPRST AMP contents EXPRE
+  #   comment       := EXPRST BANG COMMENT EXPRE
+  #   partial       := EXPRST WHITE? GT WHITE? (STRING | (IDENT | LITERAL) [WHITE? (call | lit)]) WHITE? EXPRE
+  #   contents      := WHITE? call WHITE?
+  #   call          := DOT | object_path [WHITE arguments]
+  #   arguments     := argument (WHITE argument)* [WHITE hash] | hash
+  #   argument      := object_path | lit | OPAR contents CPAR
+  #   hash          := IDENT EQ hash_value (WHITE IDENT EQ hash_value)*
+  #   hash_value    := OPAR contents CPAR | string | NUMBER | object_path
+  #   object_path   := object ((DOT | FWSL) (object | NUMBER))*
+  #   object        := AT IDENT | IDENT | LITERAL | (DOT DOT FWSL)+ (IDENT | LITERAL)
+  #   lit           := STRING | S_STRING | NUMBER | BOOL
+  class Parser
+    class UnbalancedBlockError < Error; end
 
-    class UnbalancedBlockError < StandardError; end
+    class NotInLanguage < Error
+      def initialize(message = 'String not in language.')
+        super
+      end
+    end
 
-    class Environment < RLTK::Parser::Environment
-      def push_block block
-        blocks.push(block.name)
-        block
+    STRINGS = [:STRING, :S_STRING]
+    LITERALS = [*STRINGS, :NUMBER, :BOOL]
+    OBJECT_STARTS = [:AT, :IDENT, :LITERAL, :DOT]
+    ARGUMENT_STARTS = [*OBJECT_STARTS, *LITERALS, :OPAR]
+
+    def self.parse(tokens)
+      new.parse(tokens)
+    end
+
+    def parse(tokens)
+      @tokens = tokens
+      @pos = 0
+      template = parse_template
+      expect(:EOS)
+      raise NotInLanguage unless @pos == @tokens.size
+      template
+    end
+
+    private
+
+    def parse_template
+      items = []
+      loop do
+        case peek
+        when :OUT
+          items << OutputNode.new(advance.value)
+        when :RAWSTART
+          items << parse_raw_block
+        when :TEXPRST
+          items << parse_triple_stash
+        when :EXPRST
+          break if else? || block_end?
+          items << parse_expression
+        else
+          break
+        end
+      end
+      TemplateNode.new(items)
+    end
+
+    def parse_raw_block
+      expect(:RAWSTART)
+      raw = expect(:RAWSTRING).value
+      expect(:RAWEND)
+      OutputNode.new(raw)
+    end
+
+    def parse_triple_stash
+      expect(:TEXPRST)
+      call = parse_contents
+      expect(:TEXPRE)
+      SafeExpressionNode.new(call)
+    end
+
+    def parse_expression
+      case peek(1)
+      when :HASH then parse_block
+      when :HAT  then parse_block
+      when :BANG then parse_comment
+      when :AMP
+        expect(:EXPRST)
+        expect(:AMP)
+        call = parse_contents
+        expect(:EXPRE)
+        SafeExpressionNode.new(call)
+      else
+        if peek(skip_white(1)) == :GT
+          parse_partial
+        else
+          expect(:EXPRST)
+          call = parse_contents
+          expect(:EXPRE)
+          ExpressionNode.new(call)
+        end
+      end
+    end
+
+    def parse_block
+      expect(:EXPRST)
+      inverted = advance.type == :HAT
+      skip(:WHITE)
+      name = expect(:IDENT).value
+      arguments = []
+      if peek == :WHITE && peek(1) != :EXPRE
+        advance
+        arguments = parse_arguments
+      end
+      skip(:WHITE)
+      expect(:EXPRE)
+      opener = CallNode.new(name, arguments)
+
+      contents = parse_template
+      alternate = nil
+      if else?
+        parse_else
+        alternate = parse_template
+      end
+      closer = parse_block_end(opener)
+
+      if inverted
+        # An inverted section renders its body when the value is falsy, so
+        # the body is the alternate and the {{else}} part (if any) the contents.
+        BlockExpressionNodeWithElse.new([opener], alternate || TemplateNode.new([]), closer, contents)
+      elsif alternate
+        BlockExpressionNodeWithElse.new([opener], contents, closer, alternate)
+      else
+        BlockExpressionNode.new([opener], contents, closer)
+      end
+    end
+
+    def parse_else
+      expect(:EXPRST)
+      skip(:WHITE)
+      raise NotInLanguage unless [:ELSE, :HAT].include?(peek)
+      advance
+      skip(:WHITE)
+      expect(:EXPRE)
+    end
+
+    def parse_block_end(opener)
+      expect(:EXPRST)
+      expect(:FWSL)
+      skip(:WHITE)
+      name = expect(:IDENT).value
+      skip(:WHITE)
+      expect(:EXPRE)
+      if name != opener.name
+        raise UnbalancedBlockError, "Unable to find matching opening for {{/#{name}}}"
+      end
+      CallNode.new(name, [])
+    end
+
+    def parse_comment
+      expect(:EXPRST)
+      expect(:BANG)
+      comment = expect(:COMMENT).value
+      expect(:EXPRE)
+      CommentNode.new(comment)
+    end
+
+    def parse_partial
+      expect(:EXPRST)
+      skip(:WHITE)
+      expect(:GT)
+      skip(:WHITE)
+      if peek == :STRING
+        name = advance.value
+        skip(:WHITE)
+        expect(:EXPRE)
+        return PartialNode.new(name, [])
       end
 
-      def pop_block block
-        b = blocks.pop
-        raise UnbalancedBlockError, "Unable to find matching opening for {{/#{block.name}}}" if b != block.name
-        block
+      raise NotInLanguage unless [:IDENT, :LITERAL].include?(peek)
+      name = advance.value
+      skip(:WHITE)
+      partial =
+        if peek == :EXPRE
+          PartialNode.new(name, [])
+        elsif LITERALS.include?(peek)
+          PartialNode.new(name, [], parse_literal)
+        else
+          PartialNode.new(name, parse_call, nil)
+        end
+      skip(:WHITE)
+      expect(:EXPRE)
+      partial
+    end
+
+    def parse_contents
+      skip(:WHITE)
+      call = parse_call
+      skip(:WHITE)
+      call
+    end
+
+    def parse_call
+      if peek == :DOT && peek(1) != :DOT
+        advance
+        return [CallNode.new('this', [])]
       end
 
-      def blocks
-        @blocks ||= []
+      path = parse_object_path
+      if peek == :WHITE && ARGUMENT_STARTS.include?(peek(1))
+        advance
+        path.last.arguments = parse_arguments
+      end
+      path
+    end
+
+    def parse_arguments
+      arguments = []
+      loop do
+        if hash_item?
+          arguments << parse_hash
+          break
+        end
+        arguments << parse_argument
+        break unless peek == :WHITE && ARGUMENT_STARTS.include?(peek(1))
+        advance
+      end
+      arguments
+    end
+
+    def parse_argument
+      if peek == :OPAR
+        parse_subexpression
+      elsif LITERALS.include?(peek)
+        parse_literal
+      else
+        parse_object_path
       end
     end
 
-    left :DOT
-    right :EQ
-
-    production(:template) do
-      clause('template_items') { |i| TemplateNode.new(i) }
-      clause('') { TemplateNode.new([]) }
+    def parse_subexpression
+      expect(:OPAR)
+      call = parse_contents
+      expect(:CPAR)
+      call
     end
 
-    # empty_list(:template_items, [:output, :expression], 'WHITE?')
-    production(:template_items) do
-      clause('template_item') { |i| [i] }
-      clause('template_items template_item') { |i0,i1| i0 << i1 }
+    def parse_hash
+      hash = {}
+      loop do
+        key = expect(:IDENT).value.to_sym
+        expect(:EQ)
+        hash[key] =
+          case peek
+          when :OPAR then parse_subexpression
+          when *STRINGS then StringNode.new(advance.value)
+          when :NUMBER then NumberNode.new(advance.value)
+          else parse_object_path
+          end
+        break unless peek == :WHITE && hash_item?(1)
+        advance
+      end
+      hash
     end
 
-    production(:template_item) do
-      clause('raw_bl')     { |e| e }
-      clause('output')     { |e| e }
-      clause('expression') { |e| e }
+    def parse_literal
+      token = advance
+      case token.type
+      when *STRINGS then StringNode.new(token.value)
+      when :NUMBER then NumberNode.new(token.value)
+      when :BOOL then token.value ? TrueNode.new(true) : FalseNode.new(false)
+      else raise NotInLanguage
+      end
     end
 
-    production(:output) do
-      clause('OUT') { |o| OutputNode.new(o) }
+    def parse_object_path
+      path = [parse_object]
+      while [:DOT, :FWSL].include?(peek)
+        advance
+        # Accomodates objects dereferenced with a number like foo.0.text
+        path << (peek == :NUMBER ? LiteralCallNode.new(advance.value, []) : parse_object)
+      end
+      path
     end
 
-    production(:raw_bl) do
-      clause('RAWSTART RAWSTRING RAWEND') { |_,e,_| OutputNode.new(e) }
+    def parse_object
+      case peek
+      when :AT
+        advance
+        LocalVarNode.new(expect(:IDENT).value)
+      when :IDENT
+        CallNode.new(advance.value, [])
+      when :LITERAL
+        LiteralCallNode.new(advance.value, [])
+      when :DOT
+        depth = 0
+        while peek == :DOT
+          expect(:DOT)
+          expect(:DOT)
+          expect(:FWSL)
+          depth += 1
+        end
+        raise NotInLanguage unless [:IDENT, :LITERAL].include?(peek)
+        ParentCallNode.new(advance.value, [], depth)
+      else
+        raise NotInLanguage
+      end
     end
 
-    production(:expression) do
-      clause('block_expression') { |e| e }
-      clause('expr')          { |e| ExpressionNode.new(e) }
-      clause('expr_comment')  { |e| CommentNode.new(e) }
-      clause('expr_safe')     { |e| SafeExpressionNode.new(e) }
-      clause('partial')       { |e| e }
+    # {{else}}, {{^}} or {{ ^ }}, but not the inverted section {{^foo}}.
+    def else?
+      return false unless peek == :EXPRST
+      i = skip_white(1)
+      case peek(i)
+      when :ELSE then true
+      when :HAT then i > 1 || peek(skip_white(i + 1)) != :IDENT
+      else false
+      end
     end
 
-    production(:partial) do
-      clause('EXPRST WHITE? GT WHITE? STRING WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
-      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
-      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? call WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1,nil) }
-      clause('EXPRST WHITE? GT WHITE? IDENT WHITE? lit WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,[],e1) }
-      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? EXPRE') { |_,_,_,_,e,_,_| PartialNode.new(e,[]) }
-      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? call WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,e1,nil) }
-      clause('EXPRST WHITE? GT WHITE? LITERAL WHITE? lit WHITE? EXPRE') { |_,_,_,_,e0,_,e1,_,_| PartialNode.new(e0,[],e1) }
+    def block_end?
+      peek == :EXPRST && peek(1) == :FWSL
     end
 
-    production(:block_expression) do
-      clause('expr_bl_start template expr_else template expr_bl_end') { |e0,e1,_,e3,e2| BlockExpressionNodeWithElse.new([e0], e1,e2,e3) }
-      clause('expr_bl_start template expr_bl_end') { |e0,e1,e2| BlockExpressionNode.new([e0],e1,e2) }
-      clause('expr_bl_inv_start template expr_else template expr_bl_end') { |e0,e1,_,e3,e2| BlockExpressionNodeWithElse.new([e0], e2,e2,e1) }
-      clause('expr_bl_inv_start template expr_bl_end') { |e0,e1,e2| BlockExpressionNodeWithElse.new([e0],TemplateNode.new([]),e2,e1) }
+    def hash_item?(offset = 0)
+      peek(offset) == :IDENT && peek(offset + 1) == :EQ
     end
 
-    production(:expr_else) do
-      clause('EXPRST WHITE? ELSE WHITE? EXPRE') { |_,_,_,_,_| }
-      clause('EXPRST WHITE? HAT WHITE? EXPRE') { |_,_,_,_,_| }
+    def peek(offset = 0)
+      token = @tokens[@pos + offset]
+      token && token.type
     end
 
-    production(:expr) do
-      clause('EXPRST expression_contents EXPRE') { |_,e,_| e }
+    def skip_white(offset)
+      peek(offset) == :WHITE ? offset + 1 : offset
     end
 
-    production(:subexpr) do
-      clause('OPAR expression_contents CPAR') { |_,e,_| e }
+    def advance
+      token = @tokens[@pos] or raise NotInLanguage
+      @pos += 1
+      token
     end
 
-    production(:expr_comment) do
-      clause('EXPRST BANG COMMENT EXPRE') { |_,_,e,_| e }
+    def expect(type)
+      raise NotInLanguage unless peek == type
+      advance
     end
 
-    production(:expr_safe) do
-      clause('TEXPRST expression_contents TEXPRE') { |_,e,_| e }
-      clause('EXPRST AMP expression_contents EXPRE') { |_,_,e,_| e }
+    def skip(type)
+      advance if peek == type
     end
-
-    production(:expr_bl_start) do
-      clause('EXPRST HASH WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
-      clause('EXPRST HASH WHITE? IDENT WHITE arguments WHITE? EXPRE') { |_,_,_,e,_,a,_,_| push_block CallNode.new(e,a) }
-    end
-
-    production(:expr_bl_inv_start) do
-      clause('EXPRST HAT WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| push_block CallNode.new(e,[]) }
-      clause('EXPRST HAT WHITE? IDENT WHITE arguments WHITE? EXPRE') { |_,_,_,e,_,a,_,_| push_block CallNode.new(e,a) }
-    end
-
-    production(:expr_bl_end) do
-      clause('EXPRST FWSL WHITE? IDENT WHITE? EXPRE') { |_,_,_,e,_,_| pop_block CallNode.new(e,[]) }
-    end
-
-    production(:expression_contents) do
-      clause('WHITE? call WHITE?') { |_,e,_| e }
-    end
-
-    production(:call) do
-      clause('object_path') { |e| e }
-      clause('object_path WHITE arguments') { |e0,_,e1| e0.last.arguments = e1; e0 }
-      clause('DOT') { |_| [CallNode.new('this', [])] }
-    end
-
-    production('arguments') do
-      clause('argument_list') { |e| e }
-      clause('argument_list WHITE hash') { |e0,_,e1| e0 + [e1] }
-      clause('hash') { |e| [e] }
-    end
-
-    nonempty_list(:argument_list, [:object_path, :lit, :subexpr], :WHITE)
-
-    production(:lit) do
-      clause('string') { |e| e }
-      clause('number') { |e| e }
-      clause('boolean') { |e| e }
-    end
-
-    production(:string) do
-      clause('STRING') { |e| StringNode.new(e) }
-      clause('S_STRING') { |e| StringNode.new(e) }
-    end
-
-    production(:number) do
-      clause('NUMBER') { |n| NumberNode.new(n) }
-    end
-
-    production(:boolean) do
-      clause('BOOL') { |b| b ? TrueNode.new(true) : FalseNode.new(false) }
-    end
-
-    production(:hash) do
-      clause('hash_item') { |e| e }
-      clause('hash WHITE hash_item') { |e0,_,e1| e0.merge(e1) }
-    end
-
-    production(:hash_item) do
-      clause('IDENT EQ subexpr') { |e0,_,e1| { e0.to_sym => e1 } }
-      clause('IDENT EQ string') { |e0,_,e1| { e0.to_sym => e1 } }
-      clause('IDENT EQ number') { |e0,_,e1| { e0.to_sym => e1 } }
-      clause('IDENT EQ object_path') { |e0,_,e1| { e0.to_sym => e1 } }
-    end
-
-    production(:object_sep) do
-      clause('DOT') { |_| }
-      clause('FWSL') { |_| }
-    end
-
-    production(:object_path) do
-      clause('object') { |e| [e] }
-      clause('object_path object_sep object') { |e0,_,e1| e0 + [e1] }
-
-      # Accomodates objects dereferenced with a number like foo.0.text
-      clause('object_path object_sep number_object') { |e0,_,e1| e0 + [e1] }
-    end
-
-    production(:number_object) do
-      clause('NUMBER') { |e| LiteralCallNode.new(e, []) }
-    end
-
-    production(:object) do
-      clause('AT IDENT') { |_,e| LocalVarNode.new(e) }
-      clause('IDENT') { |e| CallNode.new(e, []) }
-      clause('LITERAL') { |e| LiteralCallNode.new(e, []) }
-      clause('parent_call') { |e| e }
-    end
-
-    production(:parent_call) do
-      clause('backtrack IDENT') { |i,e| ParentCallNode.new(e,[],i) }
-      clause('backtrack LITERAL') { |i,e| ParentCallNode.new(e,[],i) }
-    end
-
-    production(:backtrack) do
-      clause('DOT DOT FWSL') { |_,_,_| 1 }
-      clause('backtrack DOT DOT FWSL') { |i,_,_,_| i += 1 }
-    end
-
-    finalize
-
   end
 end
