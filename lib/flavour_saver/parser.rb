@@ -321,7 +321,7 @@ module FlavourSaver
       i = skip_white(1)
       case peek(i)
       when :ELSE then true
-      when :HAT then i > 1 || peek(skip_white(2)) != :IDENT
+      when :HAT then i > 1 || peek(skip_white(i + 1)) != :IDENT
       else false
       end
     end
