@@ -3,7 +3,22 @@ module FlavourSaver
     # Fields are declared as either values (plain data) or children (nodes,
     # or arrays of nodes, which get their #parent set). The constructor takes
     # every value, then every child, positionally, inherited ones first.
+    @value_names = []
+    @child_names = []
+
     class << self
+      attr_reader :value_names, :child_names
+
+      # Copy the field lists when the subclass is defined, as RLTK did, rather
+      # than the first time they're read. Otherwise whether a subclass picks up
+      # a field added to its parent later depends on whether anything has read
+      # the subclass's fields yet.
+      def inherited(subclass)
+        super
+        subclass.instance_variable_set(:@value_names, value_names.dup)
+        subclass.instance_variable_set(:@child_names, child_names.dup)
+      end
+
       def value(name, _type = nil)
         value_names << name
         attr_accessor name
@@ -17,14 +32,6 @@ module FlavourSaver
           Array(node).each { |n| n.parent = self } unless node.is_a?(Hash)
           instance_variable_set(ivar, node)
         end
-      end
-
-      def value_names
-        @value_names ||= superclass.respond_to?(:value_names) ? superclass.value_names.dup : []
-      end
-
-      def child_names
-        @child_names ||= superclass.respond_to?(:child_names) ? superclass.child_names.dup : []
       end
     end
 
