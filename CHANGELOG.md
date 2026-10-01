@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `FlavourSaver::Lexer`, `FlavourSaver::Parser` and `FlavourSaver::Node` no
   longer inherit from RLTK classes. Tokens respond to `type` and `value` but
   no longer carry a `position`.
+* AST node fields are type-checked as they were under RLTK. Setting one to
+  the wrong type, whether in the constructor or with a setter, raises
+  `FlavourSaver::Node::TypeMismatch` (a `FlavourSaver::Error`) instead of
+  `RLTK::TypeMismatch`. An application that rewrites the AST before rendering
+  gets the error where it builds the bad node, not at render time.
 * RLTK's core-class monkey patches (`Object#returning`, `TrueClass#to_i`,
   `FalseClass#to_i`, `Integer#to_bool`, `Class#subclass_of?` and friends) are
   no longer loaded into applications that use FlavourSaver.
