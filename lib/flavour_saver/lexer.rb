@@ -1,5 +1,5 @@
-require 'strscan'
-require 'flavour_saver/error'
+require "strscan"
+require "flavour_saver/error"
 
 module FlavourSaver
   class Lexer
@@ -47,122 +47,122 @@ module FlavourSaver
       tokens << Token.new(:EOS)
     end
 
-     # seems to have problem with hash symbol in regex
-    rule /\{\{\{\{raw\}\}\}\}/, :default do
+    # seems to have problem with hash symbol in regex
+    rule(/\{\{\{\{raw\}\}\}\}/, :default) do
       push_state :raw
       :RAWSTART
     end
 
-    rule /.*?(?=\{\{\{\{\/raw\}\}\}\})/m, :raw do |str|
-      [ :RAWSTRING, str ]
+    rule(/.*?(?=\{\{\{\{\/raw\}\}\}\})/m, :raw) do |str|
+      [:RAWSTRING, str]
     end
 
-    rule /\{\{\{\{\/raw\}\}\}\}/, :raw do
+    rule(/\{\{\{\{\/raw\}\}\}\}/, :raw) do
       pop_state
       :RAWEND
     end
 
-    rule /{{{/, :default do
+    rule(/{{{/, :default) do
       push_state :expression
       :TEXPRST
     end
 
-    rule /{{/, :default do
+    rule(/{{/, :default) do
       push_state :expression
       :EXPRST
     end
 
-    rule /#/, :expression do
+    rule(/#/, :expression) do
       :HASH
     end
 
-    rule /\//, :expression do
+    rule(/\//, :expression) do
       :FWSL
     end
 
-    rule /&/, :expression do
+    rule(/&/, :expression) do
       :AMP
     end
 
-    rule /\^/, :expression do
+    rule(/\^/, :expression) do
       :HAT
     end
 
-    rule /@/, :expression do
+    rule(/@/, :expression) do
       :AT
     end
 
-    rule />/, :expression do
+    rule(/>/, :expression) do
       :GT
     end
 
-    rule /([0-9]+(\.[0-9]+)?)/, :expression do |n|
-      [ :NUMBER, n ]
+    rule(/([0-9]+(\.[0-9]+)?)/, :expression) do |n|
+      [:NUMBER, n]
     end
 
-    rule /true/, :expression do |i|
-      [ :BOOL, true ]
+    rule(/true/, :expression) do |i|
+      [:BOOL, true]
     end
 
-    rule /false/, :expression do |i|
-      [ :BOOL, false ]
+    rule(/false/, :expression) do |i|
+      [:BOOL, false]
     end
 
-    rule /\!/, :expression do
+    rule(/!/, :expression) do
       push_state :comment
       :BANG
     end
 
-    rule /([^}}]*)/, :comment do |comment|
+    rule(/([^}]*)/, :comment) do |comment|
       pop_state
-      [ :COMMENT, comment ]
+      [:COMMENT, comment]
     end
 
-    rule /else/, :expression do
+    rule(/else/, :expression) do
       :ELSE
     end
 
-    rule /([A-Za-z_]\w*)/, :expression do |name|
-      [ :IDENT, name ]
+    rule(/([A-Za-z_]\w*)/, :expression) do |name|
+      [:IDENT, name]
     end
 
-    rule /\./, :expression do
+    rule(/\./, :expression) do
       :DOT
     end
 
-    rule /\(/, :expression do
+    rule(/\(/, :expression) do
       :OPAR
     end
 
-    rule /\)/, :expression do
+    rule(/\)/, :expression) do
       :CPAR
     end
 
-    rule /\=/, :expression do
+    rule(/=/, :expression) do
       :EQ
     end
 
-    rule /"/, :expression do
+    rule(/"/, :expression) do
       push_state :string
     end
 
-    rule /(\\"|[^"])*/, :string do |str|
-      [ :STRING, str ]
+    rule(/(\\"|[^"])*/, :string) do |str|
+      [:STRING, str]
     end
 
-    rule /"/, :string do
+    rule(/"/, :string) do
       pop_state
     end
 
-    rule /'/, :expression do
+    rule(/'/, :expression) do
       push_state :s_string
     end
 
-    rule /(\\'|[^'])*/, :s_string do |str|
-      [ :S_STRING, str ]
+    rule(/(\\'|[^'])*/, :s_string) do |str|
+      [:S_STRING, str]
     end
 
-    rule /'/, :s_string do
+    rule(/'/, :s_string) do
       pop_state
     end
 
@@ -174,38 +174,38 @@ module FlavourSaver
     #   Identifiers may be any unicode character except for the following:
     #   Whitespace ! " # % & ' ( ) * + , . / ; < = > @ [ \ ] ^ ` { | } ~
     #
-    rule /([^\s!-#%-,.\/;->@\[-^`{-~]+)/, :expression do |str|
-      [ :LITERAL, str ]
+    rule(/([^\s!-#%-,.\/;->@\[-^`{-~]+)/, :expression) do |str|
+      [:LITERAL, str]
     end
 
-    rule /\[/, :expression do
+    rule(/\[/, :expression) do
       push_state :segment_literal
     end
 
-    rule /([^\]]+)/, :segment_literal do |l|
-      [ :LITERAL, l ]
+    rule(/([^\]]+)/, :segment_literal) do |l|
+      [:LITERAL, l]
     end
 
-    rule /]/, :segment_literal do
+    rule(/]/, :segment_literal) do
       pop_state
     end
 
-    rule /\s+/, :expression do
+    rule(/\s+/, :expression) do
       :WHITE
     end
 
-    rule /}}}/, :expression do
+    rule(/}}}/, :expression) do
       pop_state
       :TEXPRE
     end
 
-    rule /}}/, :expression do
+    rule(/}}/, :expression) do
       pop_state
       :EXPRE
     end
 
-    rule /.*?(?={{|\z)/m, :default do |output|
-      [ :OUT, output ]
+    rule(/.*?(?={{|\z)/m, :default) do |output|
+      [:OUT, output]
     end
 
     private
@@ -220,7 +220,7 @@ module FlavourSaver
     end
 
     def excerpt(rest)
-      rest.length > ERROR_EXCERPT_LENGTH ? "#{rest[0, ERROR_EXCERPT_LENGTH]}..." : rest
+      (rest.length > ERROR_EXCERPT_LENGTH) ? "#{rest[0, ERROR_EXCERPT_LENGTH]}..." : rest
     end
 
     def state

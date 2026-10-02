@@ -1,17 +1,16 @@
 require "flavour_saver/version"
 require "flavour_saver/error"
-require 'tilt'
+require "tilt"
 
 module FlavourSaver
-
-  autoload :Lexer,          'flavour_saver/lexer'
-  autoload :Parser,         'flavour_saver/parser'
-  autoload :Runtime,        'flavour_saver/runtime'
-  autoload :Helpers,        'flavour_saver/helpers'
-  autoload :Partial,        'flavour_saver/partial'
-  autoload :RailsPartial,   'flavour_saver/rails_partial'
-  autoload :Template,       'flavour_saver/template'
-  autoload :NodeCollection, 'flavour_saver/node_collection'
+  autoload :Lexer, "flavour_saver/lexer"
+  autoload :Parser, "flavour_saver/parser"
+  autoload :Runtime, "flavour_saver/runtime"
+  autoload :Helpers, "flavour_saver/helpers"
+  autoload :Partial, "flavour_saver/partial"
+  autoload :RailsPartial, "flavour_saver/rails_partial"
+  autoload :Template, "flavour_saver/template"
+  autoload :NodeCollection, "flavour_saver/node_collection"
 
   if defined? Rails
     class Engine < Rails::Engine
@@ -46,20 +45,20 @@ module FlavourSaver
     Parser.parse(tokens)
   end
 
-  def evaluate(template,context)
+  def evaluate(template, context)
     Runtime.run(parse(lex(template)), context)
   end
 
-  def register_helper(*args,&b)
-    Helpers.register_helper(*args,&b)
+  def register_helper(*args, &b)
+    Helpers.register_helper(*args, &b)
   end
 
   def reset_helpers
     Helpers.reset_helpers
   end
 
-  def register_partial(name,content=nil,&block)
-    Partial.register_partial(name,content,&block)
+  def register_partial(name, content = nil, &block)
+    Partial.register_partial(name, content, &block)
   end
 
   def reset_partials
@@ -71,10 +70,10 @@ module FlavourSaver
   end
 
   def logger=(logger)
-    @logger=logger
+    @logger = logger
   end
 
-  Tilt.register(Template, 'handlebars', 'hbs')
+  Tilt.register(Template, "handlebars", "hbs")
 end
 
 FS = FlavourSaver
