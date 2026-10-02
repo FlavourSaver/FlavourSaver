@@ -1,323 +1,194 @@
 # FlavourSaver
 
-[Handlebars.js](http://handlebarsjs.com) without the `.js`
+[![Gem Version](https://badge.fury.io/rb/flavour_saver.svg)](https://rubygems.org/gems/flavour_saver)
+[![CI](https://github.com/FlavourSaver/FlavourSaver/actions/workflows/ci.yml/badge.svg)](https://github.com/FlavourSaver/FlavourSaver/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[![Gem Version](https://badge.fury.io/rb/flavour_saver.svg)](https://badge.fury.io/rb/flavour_saver)
-![Build Status](https://github.com/FlavourSaver/FlavourSaver/actions/workflows/ci.yml/badge.svg)
-[![Maintainability](https://api.codeclimate.com/v1/badges/89a99bec5bbf49359081/maintainability)](https://codeclimate.com/github/FlavourSaver/FlavourSaver/maintainability)
+[Handlebars](https://handlebarsjs.com) templates in pure Ruby. Use the same templates on the server and in the browser.
 
-FlavourSaver is a Ruby-based implementation of the [Handlebars.js](http://handlebarsjs.com)
-templating language. FlavourSaver supports Handlebars template rendering natively on
-Rails and on other frameworks (such as Sinatra) via Tilt.
-
-Please use it, break it, and send issues/PR's for improvement.
-
-## Status
-
-This project is currently in maintenance mode. Here's what this means:
-
-* The maintainers of this project are not actively developing new features
-* Issues and pull requests are still welcome
-* New versions of the gem will be released as changes are merged
-
-## License
-
-FlavourSaver is Copyright (c) 2013 Resistor Limited and licensed under the terms
-of the MIT Public License (see the LICENSE file included with this distribution
-for more details).
+- Works with Rails, and with Sinatra or anything else that uses [Tilt](https://github.com/jeremyevans/tilt)
+- One runtime dependency (`tilt`), no native extensions
+- Ruby 3.1+, tested on 3.1 through 4.0
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-    gem 'flavour_saver'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install flavour_saver
-
-## Usage
-
-FlavourSaver provides an interface to the amazing
-[Tilt](https://github.com/jeremyevans/tilt) templating library, meaning that it
-should work with anything that has Tilt support (Sinatra, etc) and has a
-native Rails template handler.
-
-## Features
-
-FlavourSaver is in its infancy, your pull requests are greatly appreciated.
-
-Currently supported:
-
-  - Full support of Mustache and Handlebars templates.
-  - Expressions:
-    - with object-paths (`{{some.method.chain}}`)
-    - containing object-literals (`{{object.['index'].method}}`):
-      Ruby's `:[](index)` method is called for literals, making FlavourSaver
-      compatible with `Hash` and hashlike objects.
-    - with list arguments (`{{method arg1 "arg2"}}`)
-    - with hash arguments (`{{method foo=bar bar="baz"}}`)
-    - with list and hash arguments (`{{method arg1 arg2 foo=bar bar="baz"}}`)
-      provided that the hash is the last argument.
-    - Comments (`{{! a comment}}`)
-    - Expression output is HTML escaped
-  - Safe expressions
-    - Expressions wrapped in triple-stashes are not HTML escaped (`{{{an expression}}}`)
-  - Block expressions
-    - Simple API for adding block helpers.
-    - Block expressions with inverse blocks
-    - Inverse blocks
-  - Partials
-  - Raw content (`{{{{raw}}}} not parsed or validated {{{{/raw}}}}`)
-  - Subexpressions (`{{sum 1 (sum 1 1)}}` returns `3`)
-
-## Helpers
-
-FlavourSaver implements the following helpers by default:
-
-### #with
-
-Yields its argument into the context of the block contents:
-
-```handlebars
-{{#with person}}
-  {{name}}
-{{/with}}
+```ruby
+# Gemfile
+gem "flavour_saver"
 ```
 
-### #each
+## Quick start
 
-Takes a single collection argument and yields the block's contents once
-for each member of the collection:
+```ruby
+require "flavour_saver"
+
+Person = Struct.new(:name, :admin)
+
+FlavourSaver.evaluate("Hello {{name}}!", Person.new("Ana", true))
+# => "Hello Ana!"
+```
+
+`FS` is an alias for `FlavourSaver`.
+
+The context can be any object. Templates read its public methods: `{{name}}` calls `context.name`. Use a Struct, a `Data` class, a model or a presenter.
+
+> [!NOTE]
+> A plain Hash doesn't work as the context, because `{{name}}` calls a method. Hash values can be read with segment literals: `{{settings.[theme]}}` calls `settings["theme"]` (string keys only).
+
+### With Tilt
+
+```ruby
+template = Tilt["handlebars"].new { "{{greeting}}, {{name}}!" }
+template.render(Struct.new(:greeting, :name).new("Hi", "Ana"))
+# => "Hi, Ana!"
+```
+
+`.hbs` and `.handlebars` files are registered with Tilt, so `Tilt.new("welcome.hbs")` works too.
+
+### With Rails
+
+Put templates in `app/views` with a `.hbs` or `.handlebars` extension. See [Rails](#rails).
+
+## Syntax
+
+| Syntax | Example |
+| --- | --- |
+| Expression (HTML-escaped) | `{{name}}` |
+| Raw output | `{{{bio}}}` or `{{&bio}}` |
+| Path | `{{author.name}}` |
+| Array index / hash key | `{{posts.[0].title}}`, `{{settings.[theme]}}` |
+| Parent context | `{{../title}}` |
+| Root context | `{{@root.title}}` |
+| Comment | `{{! hidden }}`, `{{!-- hidden --}}` |
+| Section / inverted section | `{{#posts}}…{{/posts}}`, `{{^posts}}none{{/posts}}` |
+| Helper with arguments | `{{link "Home" href="/"}}` |
+| Subexpression | `{{sum 1 (sum 2 3)}}` |
+| Partial | `{{> user_card author}}` |
+| Raw block (not parsed) | `{{{{raw}}}} {{left as is}} {{{{/raw}}}}` |
+
+## Built-in helpers
+
+| Helper | Does |
+| --- | --- |
+| `#if` / `#unless` | Renders the block when the value is truthy / falsy. Supports `{{else}}`. `nil`, `false`, `0` and empty collections are falsy. |
+| `#each` | Renders the block for each item. Exposes `@index`, `@first`, `@last`, and `@key` for hashes. |
+| `#with` | Renders the block with the value as the context. |
+| `this` | The current context. |
+| `log` | Writes to `FlavourSaver.logger` at debug level. |
 
 ```handlebars
-{{#each people}}
-  {{name}}
+{{#each posts}}
+  {{@index}}. {{title}}{{#if @last}} (latest){{/if}}
 {{/each}}
-```
 
-### #if
-
-Takes a single argument and yields the contents of the block if that argument
-is truthy.
-
-```handlebars
-{{#if person}}
-  Hi {{person.name}}!
-{{/if}}
-```
-
-It can also handle a special case `{{else}}` expression:
-
-```handlebars
-{{#if person}}
-  Hi {{person.name}}!
+{{#if author.admin}}
+  Admin
 {{else}}
-  Nobody to say hi to.
+  Member
 {{/if}}
 ```
 
-### #unless
-
-Exactly the same is `#if` but backwards.
-
-### this
-
-In JavaScript `this` is a native keyword, in Ruby not-so-much. FlavourSaver's `this` helper
-returns `self`:
-
-```handlebars
-{{#each names}}
-  {{this}}
-{{/each}}
-```
-
-### log
-
-Writes log output.  The destination can be changed by assigning a `Logger` instance to
-`FlavourSaver.logger=`.  On Rails `FlavourSaver.logger` automatically points at
-`Rails.logger`.
-
-### Adding additional helpers
-
-Additional helpers can easy be added by calling `FS.register_helper`, eg:
+On Rails, `FlavourSaver.logger` is `Rails.logger`. Elsewhere, set one before using `log`:
 
 ```ruby
-FS.register_helper(:whom) { 'world' }
+require "logger"
+FlavourSaver.logger = Logger.new($stdout)
 ```
 
-Now if you were to render the following template:
+## Custom helpers
 
-```handlebars
-<h1>Hello {{whom}}!</h1>
-```
-
-You would receive the following output:
-
-```html
-<h1>Hello world!</h1>
-```
-
-### Adding block helpers
-
-Creating a block helper works exactly like adding a regular helper, except that
-the helper implementation can call `yield.contents` one or more times, with an
-optional argument setting the context of the block execution:
+Register a helper with a block. Positional arguments come first; `key=value` arguments arrive as a final hash with symbol keys.
 
 ```ruby
-FS.register_helper(:three_times) do
-  yield.contents
-  yield.contents
-  yield.contents
-end
+FS.register_helper(:shout) { |text| text.upcase }
+FS.register_helper(:greet) { |name, options| "#{options[:greeting]}, #{name}" }
 ```
-
-Which when called with the following template:
 
 ```handlebars
-{{#three_times}}
-  hello
-{{/three_times}}
+{{shout "hi"}}                  {{! HI }}
+{{greet "Ana" greeting="Hola"}} {{! Hola, Ana }}
 ```
 
-would result in the following output:
-```
-  hello
-  hello
-  hello
-```
+Helper output is HTML-escaped. Return an `html_safe` string (from ActiveSupport) to skip escaping.
 
-Implementing a simple iterator is dead easy:
+### Block helpers
+
+A block helper takes the template block as `&block`. `block.call.contents` renders the main section, optionally with a new context. `block.call.inverse` renders the `{{else}}` section.
 
 ```ruby
-FS.register_helper(:list_people) do |people|
-  people.each do |person|
-    yield.contents person
-  end
-end
-```
-
-Which could be used like so:
-
-```handlebars
-{{#list_people people}}
-  <b>{{name}}<b><br />
-  Age: {{age}}<br />
-  Sex: {{sex}}<br />
-{{/list_people}}
-```
-
-Block helpers can also contain an `{{else}}` statement, which, when used creates
-a second set of block contents (called `inverse`) which can be yielded to the output:
-
-```ruby
-FS.register_helper(:isFemale) do |person,&block|
-  if person.sex == 'female'
-    block.call.contents
+FS.register_helper(:admins) do |people, &block|
+  admins = people.select(&:admin)
+  if admins.any?
+    admins.map { |person| block.call.contents(person) }.join
   else
     block.call.inverse
   end
 end
 ```
 
-You can also register an existing method:
-
-```ruby
-def isFemale(person)
-  if person.sex == 'female'
-    yield.contents
-  else
-    yield.inverse
-  end
-end
-
-FS.register_helper(method(:isFemale))
+```handlebars
+{{#admins people}}
+  <li>{{name}}</li>
+{{else}}
+  <li>No admins</li>
+{{/admins}}
 ```
 
-Which could be used like so:
+You can also register a method. Inside a method, `yield` works the same way as `block.call`:
 
-```handlebars
-{{#isFemale person}}
-  {{person.name}} is female.
-{{else}}
-  {{person.name}} is male.
-{{/isFemale}}
+```ruby
+def twice
+  yield.contents * 2
+end
+
+FS.register_helper(method(:twice))
 ```
 
 ### Subexpressions
 
-You can use a subexpression as any value for a helper, and it will be executed before it is ran. You can also nest them, and use them in assignment of variables. 
-
-Below are some examples, utilizing a "sum" helper than adds together two numbers.
-
-```
-{{sum (sum 5 10) (sum 2 (sum 1 4))}}
-#=> 22
-
-{{#if (sum 1 2) > 2}}its more{{/if}}
-#=> its more
-
-{{#student_heights size=(sum boys girls)}}
-```
-
-### Raw Content
-
-Sometimes you don't want a section of content to be evaluted as handlebars, such as when you want to display it in a page that renders with handlebars. FlavourSaver offers a `raw` helper, that will allow you to pass anything through wrapped in those elements, and it will not be evaluated. 
-
-```
-{{{{raw}}}}
-{{if} this tries to parse, it will break on syntax
-{{{{/raw}}}}
-=> {{if} this tries to parse, it will break on syntax
-```
-
-Its important to note that while this looks like a block helper, it is not in practice. This is why you must omit the use of a `#` when writing it. 
-
-### Using Partials
-
-Handlebars allows you to register a partial either as a function or a string template with
-the engine before compiling, FlavourSaver retains this behaviour (with the notable exception
-of within Rails - see below).
-
-To register a partial you call `FlavourSaver.register_partial` with a name and a string:
+Wrap a helper call in parentheses to use its result as an argument:
 
 ```ruby
-FlavourSaver.register_partial(:my_partial, "{{this}} is a partial")
+FS.register_helper(:sum) { |a, b| a + b }
 ```
-
-You can then use this partial within your templates:
 
 ```handlebars
-{{#each people}}{{> my_partial this}}{{/each}}
+{{sum (sum 5 10) (sum 2 3)}}     {{! 20 }}
+{{chart total=(sum boys girls)}}
 ```
 
-## Using with Rails
-
-One potential gotcha of using FlavourSaver with Rails is that FlavourSaver doesn't let you
-have any access to the controller's instance variables. This is done to maintain compatibility
-with the original JavaScript implementation of Handlebars so that templates can be used on
-both the server and client side without any change.
-
-When accessing controller instance variables you should access them by way of a helper method
-or a presenter object.
-
-For example, in `ApplicationController.rb` you may have a `before_filter` which authenticates
-the current user's session cookie and stores it in the controller's `@current_user` instance
-variable.
-
-To access this variable you could create a simple helper method in `ApplicationHelpers`:
+## Partials
 
 ```ruby
-def current_user
-  @current_user
-end
+FS.register_partial(:user_card, "<b>{{name}}</b>")
 ```
 
-Which would mean that you are able to access it in your template:
+```handlebars
+{{#each people}}{{> user_card this}}{{/each}}
+```
+
+A partial can also be a block that receives the context and returns a string:
+
+```ruby
+FS.register_partial(:user_card) { |person| "<b>#{person.name}</b>" }
+```
+
+On Rails, partials come from your views instead. See below.
+
+## Rails
+
+FlavourSaver registers `.hbs` and `.handlebars` template handlers with Action View.
+
+**No instance variables.** Templates can't see controller instance variables. This keeps them portable to Handlebars.js. Expose data through helper methods or a presenter:
+
+```ruby
+# app/helpers/application_helper.rb
+module ApplicationHelper
+  def current_user
+    Current.user
+  end
+end
+```
 
 ```handlebars
 {{#if current_user}}
@@ -325,52 +196,55 @@ Which would mean that you are able to access it in your template:
 {{/if}}
 ```
 
-## Using the Tilt Interface Directly
+**Partials use `render`.** You don't register partials in Rails. The partial syntax maps to Rails partials, and the argument is passed as `object:`:
 
-You can use the registered Tilt interface directly to render template strings with a hash of template variables.
+| Template | Rails call |
+| --- | --- |
+| `{{> user_card}}` | `render partial: "user_card", object: <current context>` |
+| `{{> user_card author}}` | `render partial: "user_card", object: author` |
 
-The Tilt template's `render` method expects an object that can respond to messages using dot notation. In the following example, the template variable `{{foo}}` will result in a call to `.foo` on the `data` object. For this reason the `data` object can't be a simple hash. A model would work, but if you have a plain old Ruby hash, use it to create a new OpenStruct object, which will provide the dot notation needed.
+## Errors
 
-```ruby
-template = Tilt['handlebars'].new { "{{foo}} {{bar}}" }
-data = OpenStruct.new foo: "hello", bar: "world"
-
-template.render data # => "hello world"
-```
-
-### Special behaviour of Handlebars' partial syntax
-
-In Handlebars.js all partial templates must be pre-registered with the engine before they are
-able to be used.  When running inside Rails FlavourSaver modifies this behaviour to use Rails'
-render partial helper:
-
-```handlebars
-{{> my_partial}}
-```
-
-Will be translated into:
+Invalid templates raise a subclass of `FlavourSaver::Error`:
 
 ```ruby
-render :partial => 'my_partial'
+begin
+  FS.evaluate("{{#if ok}}unclosed", context)
+rescue FlavourSaver::Error => e
+  # FlavourSaver::Parser::NotInLanguage, ::UnbalancedBlockError,
+  # or FlavourSaver::Lexer::LexingError
+end
 ```
 
-Handlebars allows you to send a context object into the partial, which sets the execution
-context of the partial.  In Rails this behaviour would be confusing and non-standard, so
-instead any argument passed to the partial is evaluated and passed to the partial's
-`:object` argument:
+## Security
 
-```handlebars
-{{> my_partial my_context}}
-```
+A template can only call registered helpers and the public methods of its context. Methods every object inherits, like `send`, `instance_eval` or `class`, raise `FlavourSaver::ForbiddenMethodException`. Private methods like `system` and `eval` can't be reached at all. Even so, only pass objects you're comfortable exposing to template authors.
 
-```ruby
-render :partial => 'my_partial', :object => my_context
-```
+## Not supported yet
+
+These Handlebars features don't parse or don't behave like Handlebars.js yet. Pull requests are welcome.
+
+- Whitespace control (`{{~foo~}}`)
+- `{{else if …}}` chains
+- Block parameters (`{{#each items as |item|}}`)
+- `{{else}}` inside `{{#each}}` and `{{#with}}`
+- Inline partials, partial blocks, dynamic partials, and hash arguments on partials
+- The `lookup` helper
+- `./` paths
 
 ## Contributing
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Added some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+Bug reports and pull requests are welcome on [GitHub](https://github.com/FlavourSaver/FlavourSaver/issues).
+
+```sh
+git clone https://github.com/FlavourSaver/FlavourSaver.git
+cd FlavourSaver
+bundle install
+bundle exec rspec
+```
+
+Changes are listed in the [CHANGELOG](CHANGELOG.md).
+
+## License
+
+MIT. Copyright (c) 2013 Resistor Limited. See [LICENSE](LICENSE).
