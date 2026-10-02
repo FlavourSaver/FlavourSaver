@@ -50,7 +50,7 @@ module FlavourSaver
       private
 
       def field_class(name, type)
-        klass = type.is_a?(Array) && type.size == 1 ? type.first : type
+        klass = (type.is_a?(Array) && type.size == 1) ? type.first : type
         return klass if klass.is_a?(Class)
         raise ArgumentError, "#{self}##{name} must have a class, or a class in an array, as its type"
       end
@@ -91,7 +91,7 @@ module FlavourSaver
         end
       return if valid
 
-      actual = value.is_a?(Array) && value.any? ? "an Array of #{value.map(&:class).uniq.join(', ')}" : value.class
+      actual = (value.is_a?(Array) && value.any?) ? "an Array of #{value.map(&:class).uniq.join(", ")}" : value.class
       raise TypeMismatch, "#{self.class}##{name} must be #{type.inspect}, not #{actual}"
     end
   end
