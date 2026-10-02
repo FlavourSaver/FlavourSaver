@@ -196,6 +196,14 @@ end
 {{/if}}
 ```
 
+**Call view helpers through `@root` inside blocks.** The view is the root context. Inside `{{#each}}` or `{{#with}}`, names are looked up on the current item, so `{{post_url id}}` renders blank. Use `@root` to reach the view:
+
+```handlebars
+{{#each posts}}
+  <a href="{{@root.post_url id}}">{{title}}</a>
+{{/each}}
+```
+
 **Partials use `render`.** You don't register partials in Rails. The partial syntax maps to Rails partials, and the argument is passed as `object:`:
 
 | Template | Rails call |
