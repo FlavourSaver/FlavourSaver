@@ -1,30 +1,58 @@
 module FlavourSaver
   class Node
+    class TypeMismatch < StandardError; end
+
     # Fields are declared as either values (plain data) or children (nodes,
     # or arrays of nodes, which get their #parent set). The constructor takes
     # every value, then every child, positionally, inherited ones first.
+    # A field's type is a class (nil is also allowed) or a class in an array,
+    # such as [CallNode].
+    @value_names = []
+    @child_names = []
+
     class << self
-      def value(name, _type = nil)
-        value_names << name
-        attr_accessor name
+      attr_reader :value_names, :child_names
+
+      # Copy the parent's fields now, not on first read, so they can't depend on read order.
+      def inherited(subclass)
+        super
+        subclass.instance_variable_set(:@value_names, value_names.dup)
+        subclass.instance_variable_set(:@child_names, child_names.dup)
       end
 
-      def child(name, _type = nil)
+      def value(name, type)
+        if field_class(name, type) <= Node
+          raise ArgumentError, "#{self}##{name} is a value, so its type can't be a Node"
+        end
+        value_names << name
+        attr_reader name
+        ivar = :"@#{name}"
+        define_method(:"#{name}=") do |value|
+          check_field_type(name, type, value)
+          instance_variable_set(ivar, value)
+        end
+      end
+
+      def child(name, type)
+        unless field_class(name, type) <= Node
+          raise ArgumentError, "#{self}##{name} is a child, so its type must be a Node"
+        end
         child_names << name
         attr_reader name
         ivar = :"@#{name}"
         define_method(:"#{name}=") do |node|
-          Array(node).each { |n| n.parent = self } unless node.is_a?(Hash)
+          check_field_type(name, type, node)
+          Array(node).each { |n| n.parent = self }
           instance_variable_set(ivar, node)
         end
       end
 
-      def value_names
-        @value_names ||= superclass.respond_to?(:value_names) ? superclass.value_names.dup : []
-      end
+      private
 
-      def child_names
-        @child_names ||= superclass.respond_to?(:child_names) ? superclass.child_names.dup : []
+      def field_class(name, type)
+        klass = type.is_a?(Array) && type.size == 1 ? type.first : type
+        return klass if klass.is_a?(Class)
+        raise ArgumentError, "#{self}##{name} must have a class, or a class in an array, as its type"
       end
     end
 
@@ -50,6 +78,21 @@ module FlavourSaver
 
     def inspect
       to_s.inspect
+    end
+
+    private
+
+    def check_field_type(name, type, value)
+      valid =
+        if type.is_a?(Array)
+          value.is_a?(Array) && value.all? { |item| item.is_a?(type.first) }
+        else
+          value.nil? || value.is_a?(type)
+        end
+      return if valid
+
+      actual = value.is_a?(Array) && value.any? ? "an Array of #{value.map(&:class).uniq.join(', ')}" : value.class
+      raise TypeMismatch, "#{self.class}##{name} must be #{type.inspect}, not #{actual}"
     end
   end
 
