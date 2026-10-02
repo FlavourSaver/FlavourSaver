@@ -1,10 +1,10 @@
-require 'tilt'
-require 'flavour_saver'
+require "tilt"
+require "flavour_saver"
 
-describe 'Fixture: if_else.hbs' do
-  subject { Tilt.new(template).render(context).gsub(/[\s\r\n]+/, ' ').strip }
+describe "Fixture: if_else.hbs" do
+  subject { Tilt.new(template).render(context).gsub(/[\s\r\n]+/, " ").strip }
   let(:context) { Struct.new(:value).new }
-  let(:template) { File.expand_path('../../fixtures/if_else.hbs', __FILE__) }
+  let(:template) { File.expand_path("../../fixtures/if_else.hbs", __FILE__) }
 
   it "renders the if block when given a string" do
     context.value = "Alan"
@@ -26,7 +26,7 @@ describe 'Fixture: if_else.hbs' do
     expect(subject).to eq "The given value is falsy: false."
   end
 
-  it 'renders the else block when given nil' do
+  it "renders the else block when given nil" do
     context.value = nil
     expect(subject).to eq "The given value is falsy: ."
   end

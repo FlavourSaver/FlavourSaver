@@ -1,4 +1,4 @@
-require 'delegate'
+require "delegate"
 
 module FlavourSaver
   module Helpers
@@ -11,19 +11,19 @@ module FlavourSaver
         r = []
         count = 0
         collection.each do |element|
-          locals ={
-            'index' => count,
-            'last' => count == collection.size - 1,
-            'first' => count == 0
+          locals = {
+            "index" => count,
+            "last" => count == collection.size - 1,
+            "first" => count == 0
           }
 
-          locals['key'], element = element if collection.is_a?(Hash)
+          locals["key"], element = element if collection.is_a?(Hash)
 
           r << yield.contents(element, locals)
           count += 1
         end
         yield.rendered!
-        r.join ''
+        r.join ""
       end
 
       def if(value)
@@ -44,7 +44,7 @@ module FlavourSaver
 
       def log(message)
         FS.logger.debug("FlavourSaver: #{message}")
-        ''
+        ""
       end
 
       private
@@ -59,11 +59,10 @@ module FlavourSaver
     end
 
     class Decorator < Defaults
-
       def initialize(locals, source)
         @source = source
         mixin = Module.new do
-          locals.each do |name,impl|
+          locals.each do |name, impl|
             define_method name, &impl
           end
         end
@@ -88,7 +87,9 @@ module FlavourSaver
         super || @source.respond_to?(name)
       end
 
-      def method_missing(name,*args,&b)
+      # Defining respond_to_missing? would change what #method returns, which
+      # Runtime#forbidden_method? relies on. See the SECURITY note below.
+      def method_missing(name, *args, &b) # standard:disable Style/MissingRespondToMissing
         # I would rather have it raise a NameError, but Moustache
         # compatibility requires that missing helpers return
         # nothing. A good place for bugs to hide.
@@ -116,7 +117,7 @@ module FlavourSaver
       @registered_helpers ||= {}
     end
 
-    def register_helper(method,&b)
+    def register_helper(method, &b)
       if !method.is_a?(Symbol) && method.respond_to?(:name)
         registered_helpers[method.name.to_sym] = method
       elsif b
@@ -134,13 +135,13 @@ module FlavourSaver
       @registered_helpers = {}
     end
 
-    def decorate_with(context, helper_names=[], locals={})
+    def decorate_with(context, helper_names = [], locals = {})
       helpers = if helper_names.any?
-                  helper_symbols = helper_names.map(&:to_sym)
-                  registered_helpers.select { |k,v| helper_symbols.member? k }
-                else
-                  registered_helpers
-                end
+        helper_symbols = helper_names.map(&:to_sym)
+        registered_helpers.select { |k, v| helper_symbols.member? k }
+      else
+        registered_helpers
+      end
       helpers = helpers.merge(locals)
       Decorator.new(helpers, context)
     end

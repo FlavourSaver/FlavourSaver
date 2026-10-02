@@ -1,17 +1,17 @@
-require 'tilt'
-require 'flavour_saver'
+require "tilt"
+require "flavour_saver"
 
-describe 'Fixture: unless.hbs' do
-  subject { Tilt.new(template).render(context).gsub(/[\s\r\n]+/, ' ').strip }
+describe "Fixture: unless.hbs" do
+  subject { Tilt.new(template).render(context).gsub(/[\s\r\n]+/, " ").strip }
   let(:context) { Struct.new(:value).new }
-  let(:template) { File.expand_path('../../fixtures/unless.hbs', __FILE__) }
+  let(:template) { File.expand_path("../../fixtures/unless.hbs", __FILE__) }
 
   it "renders the unless block when given false" do
     context.value = false
     expect(subject).to eq "The given value is falsy: false."
   end
 
-  it 'renders the unless block when given nil' do
+  it "renders the unless block when given nil" do
     context.value = nil
     expect(subject).to eq "The given value is falsy: ."
   end
