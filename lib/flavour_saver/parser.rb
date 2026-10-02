@@ -39,10 +39,12 @@ module FlavourSaver
     ARGUMENT_STARTS = [*OBJECT_STARTS, *LITERALS, :OPAR]
 
     # How deeply blocks and subexpressions may nest, counted together. Each
-    # level recurses through several methods, so without a limit a deep
-    # template raises SystemStackError, which isn't a FlavourSaver::Error.
-    # A Fiber's stack overflows at about 180 levels, so this leaves headroom.
-    MAX_DEPTH = 100
+    # level recurses through several methods when parsing and more when
+    # rendering, so without a limit a deep template raises SystemStackError,
+    # which isn't a FlavourSaver::Error. Inside a Fiber, rendering nested
+    # {{#each}} blocks or hash subexpressions overflows at 80 to 100 levels,
+    # before counting the frames the application already has on the stack.
+    MAX_DEPTH = 32
 
     def self.parse(tokens)
       new.parse(tokens)

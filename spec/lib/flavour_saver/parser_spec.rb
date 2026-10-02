@@ -401,7 +401,7 @@ describe FlavourSaver::Parser do
 
     it 'counts blocks and subexpressions together' do
       template = ('{{#foo}}' * max) + '{{bar (baz)}}' + ('{{/foo}}' * max)
-      expect { parse.(template) }.to raise_error(FlavourSaver::Parser::NotInLanguage)
+      expect { parse.(template) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
     end
 
     it 'raises NotInLanguage rather than SystemStackError inside a Fiber' do
