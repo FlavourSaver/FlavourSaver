@@ -3,6 +3,7 @@
 # doing it.
 
 require "active_support"
+require "active_support/core_ext/string/output_safety"
 
 require "flavour_saver"
 

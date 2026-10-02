@@ -27,7 +27,7 @@ describe FlavourSaver::Runtime do
 
     describe "when passed a StringNode" do
       let(:template) { "{{foo \"WAT\"}}" }
-      let(:node) { ast.items.select { |n| n.class == FlavourSaver::ExpressionNode }.first.method.first.arguments.first }
+      let(:node) { ast.items.find { |n| n.instance_of?(FlavourSaver::ExpressionNode) }.method.first.arguments.first }
 
       it "returns the value of the string" do
         expect(subject.evaluate_node(node)).to eq "WAT"
@@ -35,7 +35,7 @@ describe FlavourSaver::Runtime do
     end
 
     describe "when passed an ExpressionNode" do
-      let(:node) { ast.items.select { |n| n.class == FlavourSaver::ExpressionNode }.first }
+      let(:node) { ast.items.find { |n| n.instance_of?(FlavourSaver::ExpressionNode) } }
       let(:template) { "{{foo}}" }
 
       it "calls evaluate_node with the node" do
@@ -50,7 +50,7 @@ describe FlavourSaver::Runtime do
     end
 
     describe "when passed a SafeExpressionNode" do
-      let(:node) { ast.items.select { |n| n.class == FlavourSaver::SafeExpressionNode }.first }
+      let(:node) { ast.items.find { |n| n.instance_of?(FlavourSaver::SafeExpressionNode) } }
       let(:template) { "{{{foo}}}" }
 
       it "should not HTML escape the output" do
@@ -61,7 +61,7 @@ describe FlavourSaver::Runtime do
 
     describe "when passed a CommentNode" do
       let(:template) { "{{! I am a comment}}" }
-      let(:node) { ast.items.select { |n| n.class == FlavourSaver::CommentNode }.first }
+      let(:node) { ast.items.find { |n| n.instance_of?(FlavourSaver::CommentNode) } }
 
       it "should return zilch" do
         expect(subject.evaluate_node(node)).to eq ""
@@ -79,7 +79,7 @@ describe FlavourSaver::Runtime do
   end
 
   describe "#evaluate_expression" do
-    let(:node) { ast.items.select { |n| n.class == FlavourSaver::ExpressionNode }.first }
+    let(:node) { ast.items.find { |n| n.instance_of?(FlavourSaver::ExpressionNode) } }
     let(:expr) { node }
 
     describe "when called with a simple method expression" do

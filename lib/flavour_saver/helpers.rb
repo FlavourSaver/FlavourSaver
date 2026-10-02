@@ -87,7 +87,9 @@ module FlavourSaver
         super || @source.respond_to?(name)
       end
 
-      def method_missing(name, *args, &b)
+      # Defining respond_to_missing? would change what #method returns, which
+      # Runtime#forbidden_method? relies on. See the SECURITY note below.
+      def method_missing(name, *args, &b) # standard:disable Style/MissingRespondToMissing
         # I would rather have it raise a NameError, but Moustache
         # compatibility requires that missing helpers return
         # nothing. A good place for bugs to hide.

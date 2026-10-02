@@ -17,12 +17,12 @@ describe "Fixture: sections.hbs" do
   end
 
   it "renders correctly when given an order" do
-    class Order
+    order = Class.new do
       def number
         1234
       end
     end
-    context.order = Order.new
+    context.order = order.new
     expect(subject).to eq "Number: 1234"
   end
 end

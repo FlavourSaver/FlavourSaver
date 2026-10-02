@@ -1,3 +1,5 @@
+# The payloads below set $fs_rce_canary so a spec can tell that one executed.
+# standard:disable Style/GlobalVars
 require "tilt"
 require "tmpdir"
 require "fileutils"
@@ -260,3 +262,4 @@ describe "Template-driven method dispatch" do
     end
   end
 end
+# standard:enable Style/GlobalVars

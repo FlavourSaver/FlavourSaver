@@ -59,7 +59,7 @@ module FlavourSaver
     child :items, [TemplateItemNode]
 
     def to_s
-      items.map(&:to_s).join ""
+      items.join ""
     end
   end
 
@@ -153,7 +153,7 @@ module FlavourSaver
   class ExpressionNode < TemplateItemNode
     child :method, [CallNode]
     def to_s
-      "{{#{method.map(&:to_s).join "."}}}"
+      "{{#{method.join "."}}}"
     end
   end
 
@@ -166,11 +166,11 @@ module FlavourSaver
     end
 
     def to_s
-      "{{##{method.map(&:to_s).join ""}}}#{contents}{{/#{closer.name}}}"
+      "{{##{method.join ""}}}#{contents}{{/#{closer.name}}}"
     end
 
     def inspect
-      r = "{{##{method.map(&:to_s).join ""}}}\n"
+      r = "{{##{method.join ""}}}\n"
       r << "  "
       r << contents.inspect.split("\n").join("\n  ")
       r
@@ -181,11 +181,11 @@ module FlavourSaver
     child :alternate, TemplateNode
 
     def to_s
-      "{{##{method.map(&:to_s).join ""}}}#{contents}{{else}}#{alternate}{{/#{closer.name}}}"
+      "{{##{method.join ""}}}#{contents}{{else}}#{alternate}{{/#{closer.name}}}"
     end
 
     def inspect
-      r = "{{##{method.map(&:to_s).join ""}}}\n"
+      r = "{{##{method.join ""}}}\n"
       r << contents.inspect.split("\n").join("\n  ")
       r << "\n  {{else}}\n"
       r << alternate.inspect.split("\n").join("\n  ")
@@ -195,7 +195,7 @@ module FlavourSaver
 
   class SafeExpressionNode < ExpressionNode
     def to_s
-      "{{{#{method.map(&:to_s).join "."}}}}"
+      "{{{#{method.join "."}}}}"
     end
   end
 

@@ -8,7 +8,8 @@ module FlavourSaver
   UnknownHelperException = Class.new(RuntimeError)
   ForbiddenMethodException = Class.new(UnknownHelperException)
   class Runtime
-    attr_accessor :context, :parent, :ast, :privates
+    attr_accessor :context, :ast, :privates
+    attr_writer :parent
 
     def self.run(ast, context, locals = {}, helpers = [])
       new(ast, context, locals, helpers).to_s
@@ -99,16 +100,16 @@ module FlavourSaver
     end
 
     def evaluate_partial(node)
-      _context = context
-      _context = evaluate_argument(node.context) if node.context
+      partial_context = context
+      partial_context = evaluate_argument(node.context) if node.context
       if defined?(::Rails)
-        context.send(:render, partial: node.name, object: _context)
+        context.send(:render, partial: node.name, object: partial_context)
       else
         partial = Partial.fetch(node.name)
         if partial.respond_to? :call
-          partial.call(_context)
+          partial.call(partial_context)
         else
-          create_child_runtime(partial).to_s(_context)
+          create_child_runtime(partial).to_s(partial_context)
         end
       end
     end
@@ -129,7 +130,7 @@ module FlavourSaver
         if forbidden_method? context, call.name
           raise ForbiddenMethodException, "Refusing to call #{call.name.inspect} from a template: it isn't a helper, a local, or part of the template context's own API. Register a helper if you meant to expose it, or use #{"{{[#{call.name}]}}"} to read a data field of that name."
         end
-        if call.parent.is_a? BlockExpressionNode and !context.respond_to? call.name
+        if call.parent.is_a?(BlockExpressionNode) && !context.respond_to?(call.name)
           raise UnknownHelperException, "Template context doesn't respond to method #{call.name.inspect}."
         end
         context.public_send(call.name, *call.arguments.map { |a| evaluate_argument(a) }, &block)
@@ -169,7 +170,7 @@ module FlavourSaver
 
         # If the result is collectiony then act as an implicit
         # "each"
-        if result && result.respond_to?(:each)
+        if result&.respond_to?(:each)
           if result.respond_to?(:size) && (result.size > 0)
             r = []
             # Not using #each_with_index because the object might
@@ -217,12 +218,12 @@ module FlavourSaver
 
       def contents(context = @block_context, locals = {})
         @render_count += 1
-        @content_runtime.to_s(context, locals) if @content_runtime
+        @content_runtime&.to_s(context, locals)
       end
 
       def inverse(context = @block_context)
         @render_count += 1
-        @alternate_runtime.to_s(context) if @alternate_runtime
+        @alternate_runtime&.to_s(context)
       end
 
       def has_inverse?
@@ -291,32 +292,29 @@ module FlavourSaver
     end
 
     def escape(output)
-      if output.respond_to?(:html_safe) && output.html_safe?
-        # If the string is already marked as html_safe then don't
-        # escape it any further.
-        output
+      # If the string is already marked as html_safe then don't
+      # escape it any further.
+      return output if output.respond_to?(:html_safe) && output.html_safe?
 
-      else
-        output = CGI.escapeHTML(output)
+      output = CGI.escapeHTML(output)
 
-        # We can't just use CGI.escapeHTML because Handlebars does extra
-        # escaping for its JavaScript environment. Thems the breaks.
-        output = output.gsub(/(['"`])/) do |match|
-          case match
-          when "'"
-            "&#x27;"
-          when '"'
-            "&quot;"
-          when "`"
-            "&#x60;"
-          end
+      # We can't just use CGI.escapeHTML because Handlebars does extra
+      # escaping for its JavaScript environment. Thems the breaks.
+      output = output.gsub(/(['"`])/) do |match|
+        case match
+        when "'"
+          "&#x27;"
+        when '"'
+          "&quot;"
+        when "`"
+          "&#x60;"
         end
-
-        # Mark it as already escaped if we're in Rails
-        output.html_safe if output.respond_to? :html_safe
-
-        output
       end
+
+      # Mark it as already escaped if we're in Rails
+      output.html_safe if output.respond_to? :html_safe
+
+      output
     end
   end
 end

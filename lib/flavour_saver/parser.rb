@@ -336,7 +336,7 @@ module FlavourSaver
 
     def peek(offset = 0)
       token = @tokens[@pos + offset]
-      token && token.type
+      token&.type
     end
 
     def skip_white(offset)
