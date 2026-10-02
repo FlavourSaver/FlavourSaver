@@ -59,7 +59,7 @@ module FlavourSaver
     child :items, [TemplateItemNode]
 
     def to_s
-      items.map(&:to_s).join ''
+      items.map(&:to_s).join ""
     end
   end
 
@@ -104,14 +104,14 @@ module FlavourSaver
     value :name, String
     value :arguments, Array
 
-    def arguments_to_str(str='')
+    def arguments_to_str(str = "")
       str = str.dup # RLTK magic?
       arguments.each do |arg|
-        str << ' '
+        str << " "
         if arg.respond_to? :join
-          str << arg.join('.')
+          str << arg.join(".")
         elsif arg.respond_to? :keys
-          arg.each do |k,v|
+          arg.each do |k, v|
             str << "#{k}: #{v.inspect}"
           end
         else
@@ -142,34 +142,35 @@ module FlavourSaver
     value :depth, Integer
 
     def to_callnode
-      CallNode.new(name,arguments)
+      CallNode.new(name, arguments)
     end
+
     def to_s
-      "#{'../' * depth}#{super}"
+      "#{"../" * depth}#{super}"
     end
   end
 
   class ExpressionNode < TemplateItemNode
     child :method, [CallNode]
     def to_s
-      "{{#{method.map(&:to_s).join '.'}}}"
+      "{{#{method.map(&:to_s).join "."}}}"
     end
   end
 
   class BlockExpressionNode < ExpressionNode
     child :contents, TemplateNode
-    child :closer,   CallNode
+    child :closer, CallNode
 
     def name
       method.first.name
     end
 
     def to_s
-      "{{##{method.map(&:to_s).join ''}}}#{contents.to_s}{{/#{closer.name}}}"
+      "{{##{method.map(&:to_s).join ""}}}#{contents}{{/#{closer.name}}}"
     end
 
     def inspect
-      r = "{{##{method.map(&:to_s).join ''}}}\n"
+      r = "{{##{method.map(&:to_s).join ""}}}\n"
       r << "  "
       r << contents.inspect.split("\n").join("\n  ")
       r
@@ -180,11 +181,11 @@ module FlavourSaver
     child :alternate, TemplateNode
 
     def to_s
-      "{{##{method.map(&:to_s).join ''}}}#{contents.to_s}{{else}}#{alternate.to_s}{{/#{closer.name}}}"
+      "{{##{method.map(&:to_s).join ""}}}#{contents}{{else}}#{alternate}{{/#{closer.name}}}"
     end
 
     def inspect
-      r = "{{##{method.map(&:to_s).join ''}}}\n"
+      r = "{{##{method.map(&:to_s).join ""}}}\n"
       r << contents.inspect.split("\n").join("\n  ")
       r << "\n  {{else}}\n"
       r << alternate.inspect.split("\n").join("\n  ")
@@ -194,7 +195,7 @@ module FlavourSaver
 
   class SafeExpressionNode < ExpressionNode
     def to_s
-      "{{{#{method.map(&:to_s).join '.'}}}}"
+      "{{{#{method.map(&:to_s).join "."}}}}"
     end
   end
 

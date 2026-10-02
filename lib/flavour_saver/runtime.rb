@@ -1,30 +1,29 @@
-require 'cgi'
+require "cgi"
 
 module FlavourSaver
-  UnknownNodeTypeException          = Class.new(StandardError)
-  UnknownContextException           = Class.new(StandardError)
-  InappropriateUseOfElseException   = Class.new(StandardError)
+  UnknownNodeTypeException = Class.new(StandardError)
+  UnknownContextException = Class.new(StandardError)
+  InappropriateUseOfElseException = Class.new(StandardError)
   UndefinedPrivateVariableException = Class.new(StandardError)
-  UnknownHelperException            = Class.new(RuntimeError)
-  ForbiddenMethodException          = Class.new(UnknownHelperException)
+  UnknownHelperException = Class.new(RuntimeError)
+  ForbiddenMethodException = Class.new(UnknownHelperException)
   class Runtime
-
     attr_accessor :context, :parent, :ast, :privates
 
-    def self.run(ast, context, locals={}, helpers=[])
-      self.new(ast, context, locals, helpers).to_s
+    def self.run(ast, context, locals = {}, helpers = [])
+      new(ast, context, locals, helpers).to_s
     end
 
-    def initialize(ast, context=nil, locals={}, helpers=[],parent=nil)
+    def initialize(ast, context = nil, locals = {}, helpers = [], parent = nil)
       @ast = ast
       @locals = locals
       @helpers = helpers
       @context = context
       @parent = parent
-      @privates = parent ? parent.privates.dup : { 'root' => context }
+      @privates = parent ? parent.privates.dup : {"root" => context}
     end
 
-    def to_s(tmp_context = nil,privates={})
+    def to_s(tmp_context = nil, privates = {})
       result = nil
       if tmp_context
         old_context = @context
@@ -35,37 +34,35 @@ module FlavourSaver
         @privates = old_privates
         @context = old_context
       else
-        result = evaluate_node(@ast).to_s.force_encoding(Encoding::default_external)
+        result = evaluate_node(@ast).to_s.force_encoding(Encoding.default_external)
       end
       result
     end
 
-    def private_variable_set(name,value)
+    def private_variable_set(name, value)
       @privates[name.to_s] = value
     end
 
     def private_variable_get(name)
-      begin
-        @privates.fetch(name)
-      rescue KeyError
-        raise UndefinedPrivateVariableException, "private variable not found @#{name}"
-      end
+      @privates.fetch(name)
+    rescue KeyError
+      raise UndefinedPrivateVariableException, "private variable not found @#{name}"
     end
 
     def strip(tmp_context = nil)
-      self.to_s(tmp_context).gsub(/[\s]+/,' ').strip
+      to_s(tmp_context).gsub(/\s+/, " ").strip
     end
 
     def evaluate_node(node)
       case node
       when TemplateNode
-        node.items.map { |n| evaluate_node(n) }.join('')
+        node.items.map { |n| evaluate_node(n) }.join("")
       when BlockExpressionNode
         evaluate_block(node).to_s
       when OutputNode
         node.value
       when NumberNode
-        if node.value =~ /\./
+        if /\./.match?(node.value)
           node.value.to_f
         else
           node.value.to_i
@@ -79,12 +76,12 @@ module FlavourSaver
       when CallNode
         evaluate_call(node)
       when Hash
-        node.each do |key,value|
+        node.each do |key, value|
           node[key] = evaluate_argument(value)
         end
         node
       when CommentNode
-        ''
+        ""
       when PartialNode
         evaluate_partial(node)
       else
@@ -105,7 +102,7 @@ module FlavourSaver
       _context = context
       _context = evaluate_argument(node.context) if node.context
       if defined?(::Rails)
-        context.send(:render, :partial => node.name, :object => _context)
+        context.send(:render, partial: node.name, object: _context)
       else
         partial = Partial.fetch(node.name)
         if partial.respond_to? :call
@@ -116,18 +113,18 @@ module FlavourSaver
       end
     end
 
-    def evaluate_call(call, context=self.context, &block)
-      context = Helpers.decorate_with(context,@helpers,@locals) unless context.is_a? Helpers::Decorator
+    def evaluate_call(call, context = self.context, &block)
+      context = Helpers.decorate_with(context, @helpers, @locals) unless context.is_a? Helpers::Decorator
       case call
       when ParentCallNode
         depth = call.depth
-        (2..depth).inject(parent) { |p| p.parent }.evaluate_call(call.to_callnode,&block)
+        (2..depth).inject(parent) { |p| p.parent }.evaluate_call(call.to_callnode, &block)
       when LiteralCallNode
         result = context.send(:[], call.name)
-        result = result.call(*call.arguments.map { |a| evaluate_argument(a) },&block) if result.respond_to? :call
+        result = result.call(*call.arguments.map { |a| evaluate_argument(a) }, &block) if result.respond_to? :call
         result
       when LocalVarNode
-        result = private_variable_get(call.name)
+        private_variable_get(call.name)
       else
         if forbidden_method? context, call.name
           raise ForbiddenMethodException, "Refusing to call #{call.name.inspect} from a template: it isn't a helper, a local, or part of the template context's own API. Register a helper if you meant to expose it, or use #{"{{[#{call.name}]}}"} to read a data field of that name."
@@ -148,8 +145,8 @@ module FlavourSaver
     end
 
     def evaluate_object_path(path, &block)
-      path.inject(context) do |context,call|
-        context = evaluate_call(call, context, &block)
+      path.inject(context) do |context, call|
+        evaluate_call(call, context, &block)
       end
     end
 
@@ -157,11 +154,11 @@ module FlavourSaver
       evaluate_object_path(node.method)
     end
 
-    def evaluate_block(node,block_context=@context)
+    def evaluate_block(node, block_context = @context)
       call = node.method.first
       content_runtime = create_child_runtime(node.contents)
       alternate_runtime = create_child_runtime(node.alternate) if node.respond_to? :alternate
-      block_runtime = BlockRuntime.new(block_context,content_runtime,alternate_runtime)
+      block_runtime = BlockRuntime.new(block_context, content_runtime, alternate_runtime)
 
       result = evaluate_call(call, block_context) { block_runtime }
 
@@ -179,10 +176,10 @@ module FlavourSaver
             # not actually be an Enumerable
             count = 0
             result.each do |e|
-              r << block_runtime.contents(e, {'index' => count})
+              r << block_runtime.contents(e, {"index" => count})
               count += 1
             end
-            result = r.join('')
+            result = r.join("")
           else
             result = block_runtime.inverse
           end
@@ -191,19 +188,19 @@ module FlavourSaver
         elsif result
           result = block_runtime.contents result
         else
-          if block_runtime.has_inverse?
-            result = block_runtime.inverse
+          result = if block_runtime.has_inverse?
+            block_runtime.inverse
           else
-            result = ''
+            ""
           end
         end
       end
       result
     end
 
-    def create_child_runtime(body=[])
+    def create_child_runtime(body = [])
       node = body.is_a?(TemplateNode) ? body : TemplateNode.new(body)
-      Runtime.new(node,nil,@locals,@helpers,self)
+      Runtime.new(node, nil, @locals, @helpers, self)
     end
 
     def inspect
@@ -211,19 +208,19 @@ module FlavourSaver
     end
 
     class BlockRuntime
-      def initialize(block_context,content_runtime,alternate_runtime=nil)
+      def initialize(block_context, content_runtime, alternate_runtime = nil)
         @block_context = block_context
         @content_runtime = content_runtime
         @alternate_runtime = alternate_runtime
         @render_count = 0
       end
 
-      def contents(context=@block_context,locals={})
+      def contents(context = @block_context, locals = {})
         @render_count += 1
-        @content_runtime.to_s(context,locals) if @content_runtime
+        @content_runtime.to_s(context, locals) if @content_runtime
       end
 
-      def inverse(context=@block_context)
+      def inverse(context = @block_context)
         @render_count += 1
         @alternate_runtime.to_s(context) if @alternate_runtime
       end
@@ -233,7 +230,7 @@ module FlavourSaver
       end
 
       def rendered?
-        @render_count > 0 ? @render_count : false
+        (@render_count > 0) ? @render_count : false
       end
 
       def rendered!
@@ -273,10 +270,10 @@ module FlavourSaver
     # public_send.
     def forbidden_method?(context, name)
       owner = begin
-                context.method(name).owner
-              rescue NameError
-                return false
-              end
+        context.method(name).owner
+      rescue NameError
+        return false
+      end
 
       return false if owner.equal? Helpers::Defaults
       return false unless Helpers::Decorator.ancestors.include? owner
@@ -310,7 +307,7 @@ module FlavourSaver
             "&#x27;"
           when '"'
             "&quot;"
-          when '`'
+          when "`"
             "&#x60;"
           end
         end

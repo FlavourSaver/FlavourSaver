@@ -2,12 +2,11 @@ module FlavourSaver
   UnknownPartialException = Class.new(StandardError)
 
   class Partial
-
-    def self.register_partial(name, content=nil, &block)
-      if block.respond_to? :call
-        partials[name.to_s] = block
+    def self.register_partial(name, content = nil, &block)
+      partials[name.to_s] = if block.respond_to? :call
+        block
       else
-        partials[name.to_s] = Parser.parse(Lexer.lex(content))
+        Parser.parse(Lexer.lex(content))
       end
     end
 
@@ -24,6 +23,5 @@ module FlavourSaver
       raise UnknownPartialException, "I can't find the partial named #{name.inspect}" unless p
       p
     end
-
   end
 end

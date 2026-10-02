@@ -1,11 +1,11 @@
-require 'tilt'
-require 'tmpdir'
-require 'fileutils'
+require "tilt"
+require "tmpdir"
+require "fileutils"
 # Object#try is mixed into Object from ActiveSupport's own module and forwards
 # to public_send, so it is part of the surface under test here. Required
 # explicitly rather than relying on another spec file having loaded it.
-require 'active_support/core_ext/object/try'
-require 'flavour_saver'
+require "active_support/core_ext/object/try"
+require "flavour_saver"
 
 # These specs previously drove Tilt.new(template_string), which treats its
 # argument as a *filename*. It raised "No template engine registered for
@@ -22,18 +22,18 @@ describe "Template-driven method dispatch" do
 
   describe "refuses methods inherited from Object" do
     {
-      'instance_eval'      => '{{instance_eval "$fs_rce_canary = :pwned"}}',
-      'instance_exec'      => '{{instance_exec "$fs_rce_canary = :pwned"}}',
-      'send'               => '{{send "instance_eval" "$fs_rce_canary = :pwned"}}',
-      '__send__'           => '{{__send__ "instance_eval" "$fs_rce_canary = :pwned"}}',
-      'public_send'        => '{{public_send "instance_eval" "$fs_rce_canary = :pwned"}}',
-      'method'             => '{{method "instance_eval"}}',
-      'object path form'   => '{{this.instance_eval "$fs_rce_canary = :pwned"}}',
-      'subexpression form' => '{{log (instance_eval "$fs_rce_canary = :pwned")}}',
+      "instance_eval" => '{{instance_eval "$fs_rce_canary = :pwned"}}',
+      "instance_exec" => '{{instance_exec "$fs_rce_canary = :pwned"}}',
+      "send" => '{{send "instance_eval" "$fs_rce_canary = :pwned"}}',
+      "__send__" => '{{__send__ "instance_eval" "$fs_rce_canary = :pwned"}}',
+      "public_send" => '{{public_send "instance_eval" "$fs_rce_canary = :pwned"}}',
+      "method" => '{{method "instance_eval"}}',
+      "object path form" => '{{this.instance_eval "$fs_rce_canary = :pwned"}}',
+      "subexpression form" => '{{log (instance_eval "$fs_rce_canary = :pwned")}}',
       # Decorator#method_missing is public and forwards to the context, and
       # method_missing is private on BasicObject so it never appeared in
       # Object.instance_methods.
-      'method_missing'     => '{{method_missing "instance_eval" "$fs_rce_canary = :pwned"}}',
+      "method_missing" => '{{method_missing "instance_eval" "$fs_rce_canary = :pwned"}}'
     }.each do |description, template|
       it "refuses #{description}" do
         $fs_rce_canary = nil
@@ -46,7 +46,7 @@ describe "Template-driven method dispatch" do
       end
     end
 
-    it 'refuses block expression form' do
+    it "refuses block expression form" do
       $fs_rce_canary = nil
 
       expect {
@@ -56,13 +56,13 @@ describe "Template-driven method dispatch" do
       expect($fs_rce_canary).to be_nil
     end
 
-    it 'does not shell out via send' do
-      expect { evaluate(%q({{send "system" "echo pwned"}})) }
+    it "does not shell out via send" do
+      expect { evaluate('{{send "system" "echo pwned"}}') }
         .to raise_error(FlavourSaver::ForbiddenMethodException)
     end
 
-    it 'refuses regardless of the context object' do
-      [Object.new, { 'a' => 'b' }, Struct.new(:name).new('x'), 'a string', []].each do |ctx|
+    it "refuses regardless of the context object" do
+      [Object.new, {"a" => "b"}, Struct.new(:name).new("x"), "a string", []].each do |ctx|
         $fs_rce_canary = nil
 
         expect { evaluate('{{instance_eval "$fs_rce_canary = :pwned"}}', ctx) }
@@ -76,7 +76,7 @@ describe "Template-driven method dispatch" do
     # raises TypeError rather than NameError. It must still resolve to a refusal
     # (a primitive cannot carry a singleton method) rather than leaking an
     # unrescued TypeError past the UnknownHelperException contract.
-    it 'refuses on primitive contexts without leaking TypeError' do
+    it "refuses on primitive contexts without leaking TypeError" do
       [5, :sym, 1.5].each do |ctx|
         $fs_rce_canary = nil
 
@@ -90,14 +90,14 @@ describe "Template-driven method dispatch" do
     # The private forbidden_method? predicate must be correct on its own, not
     # only behind the decorator wrapping in evaluate_call, since a primitive
     # reaching it undecorated is the exact case that raised TypeError.
-    it 'the predicate refuses inherited methods on an undecorated primitive' do
-      runtime = FlavourSaver::Runtime.new(FlavourSaver.parse(FlavourSaver.lex('')), context)
-      expect(runtime.send(:forbidden_method?, 5, 'instance_eval')).to be true
+    it "the predicate refuses inherited methods on an undecorated primitive" do
+      runtime = FlavourSaver::Runtime.new(FlavourSaver.parse(FlavourSaver.lex("")), context)
+      expect(runtime.send(:forbidden_method?, 5, "instance_eval")).to be true
       # ...but leaves a primitive's own domain method dispatchable.
-      expect(runtime.send(:forbidden_method?, 5, 'bit_length')).to be false
+      expect(runtime.send(:forbidden_method?, 5, "bit_length")).to be false
     end
 
-    it 'is catchable as UnknownHelperException, for existing rescue clauses' do
+    it "is catchable as UnknownHelperException, for existing rescue clauses" do
       expect { evaluate('{{instance_eval "1"}}') }
         .to raise_error(FlavourSaver::UnknownHelperException)
     end
@@ -106,9 +106,9 @@ describe "Template-driven method dispatch" do
     # helper list when that list is non-empty. A guard that consulted the global
     # registry would exempt a name that was never mixed in, and dispatch would
     # reach Object's implementation of it.
-    it 'refuses a registered helper name that was scoped out of this runtime' do
+    it "refuses a registered helper name that was scoped out of this runtime" do
       $fs_rce_canary = nil
-      FlavourSaver::Helpers.register_helper(:send) { 'helper!' }
+      FlavourSaver::Helpers.register_helper(:send) { "helper!" }
 
       ast = FlavourSaver.parse(FlavourSaver.lex('{{send "instance_eval" "$fs_rce_canary = :pwned"}}'))
 
@@ -131,7 +131,7 @@ describe "Template-driven method dispatch" do
         canary = File.join(Dir.tmpdir, "fs_rce_#{Process.pid}_#{rand(1 << 32)}")
         begin
           evaluate(format(template, canary), ctx)
-        rescue StandardError
+        rescue
           # An exception is an acceptable outcome; execution is not.
         end
         expect(File.exist?(canary)).to be false
@@ -147,12 +147,16 @@ describe "Template-driven method dispatch" do
 
       # The OSVDB-110796 payload: a proxy or delegator answering true to
       # everything used to make every private Kernel method reachable.
-      it 'does not execute against a context with a permissive respond_to?' do
-        permissive = Class.new { def respond_to?(name, priv = false); true; end }.new
+      it "does not execute against a context with a permissive respond_to?" do
+        permissive = Class.new {
+          def respond_to?(name, priv = false)
+            true
+          end
+        }.new
         expect_no_execution('{{system "touch %s"}}', permissive)
       end
 
-      it 'does not execute via the send trampoline' do
+      it "does not execute via the send trampoline" do
         expect_no_execution('{{send "system" "touch %s"}}', context)
       end
     end
@@ -160,7 +164,7 @@ describe "Template-driven method dispatch" do
     # Object#try forwards to public_send, so a guard keyed on the method's owner
     # being Object/Kernel/BasicObject would miss it: ActiveSupport mixes try into
     # Object via its own module.
-    it 'refuses methods mixed into Object by a framework' do
+    it "refuses methods mixed into Object by a framework" do
       $fs_rce_canary = nil
 
       expect { evaluate('{{try "instance_eval" "$fs_rce_canary = :pwned"}}') }
@@ -177,8 +181,8 @@ describe "Template-driven method dispatch" do
     # No predicate names here: the lexer's IDENT rule is /([A-Za-z_]\w*)/, so a
     # trailing ? cannot form part of a template identifier.
     %w[instance_eval instance_exec send __send__ public_send method
-       define_singleton_method singleton_class class extend freeze
-       method_missing tap then itself].each do |name|
+      define_singleton_method singleton_class class extend freeze
+      method_missing tap then itself].each do |name|
       it "refuses #{name}" do
         expect { evaluate("{{#{name}}}") }
           .to raise_error(FlavourSaver::ForbiddenMethodException)
@@ -193,9 +197,9 @@ describe "Template-driven method dispatch" do
   # suite short-circuited. Point it at a real .hbs fixture, as the other
   # fixture specs do.
   describe "refuses payloads in templates loaded from disk" do
-    let(:fixture) { File.expand_path('../../fixtures/rce.hbs', __FILE__) }
+    let(:fixture) { File.expand_path("../../fixtures/rce.hbs", __FILE__) }
 
-    it 'refuses when rendered through Tilt' do
+    it "refuses when rendered through Tilt" do
       $fs_rce_canary = nil
 
       expect { Tilt.new(fixture).render(context) }
@@ -204,41 +208,45 @@ describe "Template-driven method dispatch" do
       expect($fs_rce_canary).to be_nil
     end
 
-    it 'has a fixture that really does contain a payload' do
-      expect(File.read(fixture)).to include 'instance_eval'
+    it "has a fixture that really does contain a payload" do
+      expect(File.read(fixture)).to include "instance_eval"
     end
   end
 
   # The fix must not be so broad that it breaks ordinary templates.
   describe "still allows legitimate dispatch" do
-    it 'calls a method the context actually defines' do
-      klass = Class.new { def greeting; 'hello'; end }
-      expect(evaluate('{{greeting}}', klass.new)).to eq 'hello'
+    it "calls a method the context actually defines" do
+      klass = Class.new {
+        def greeting
+          "hello"
+        end
+      }
+      expect(evaluate("{{greeting}}", klass.new)).to eq "hello"
     end
 
-    it 'reads a data field named after an Object method via segment literals' do
-      expect(evaluate('{{[class]}}', { 'class' => 'btn-primary' })).to eq 'btn-primary'
-      expect(evaluate('{{[hash]}}',  { 'hash'  => 'abc123' })).to eq 'abc123'
+    it "reads a data field named after an Object method via segment literals" do
+      expect(evaluate("{{[class]}}", {"class" => "btn-primary"})).to eq "btn-primary"
+      expect(evaluate("{{[hash]}}", {"hash" => "abc123"})).to eq "abc123"
     end
 
-    it 'allows a deliberately registered helper to shadow an Object method' do
-      FlavourSaver::Helpers.register_helper(:hash) { 'abc123' }
-      expect(evaluate('{{hash}}')).to eq 'abc123'
+    it "allows a deliberately registered helper to shadow an Object method" do
+      FlavourSaver::Helpers.register_helper(:hash) { "abc123" }
+      expect(evaluate("{{hash}}")).to eq "abc123"
     ensure
       FlavourSaver::Helpers.deregister_helper(:hash)
     end
 
-    it 'allows a local to shadow an Object method' do
+    it "allows a local to shadow an Object method" do
       runtime = FlavourSaver::Runtime.new(
-        FlavourSaver.parse(FlavourSaver.lex('{{hash}}')),
+        FlavourSaver.parse(FlavourSaver.lex("{{hash}}")),
         context,
-        { 'hash' => proc { 'abc123' } }
+        {"hash" => proc { "abc123" }}
       )
-      expect(runtime.to_s).to eq 'abc123'
+      expect(runtime.to_s).to eq "abc123"
     end
 
-    it 'still renders nothing for an unknown, non-forbidden method' do
-      expect(evaluate('{{no_such_method}}')).to eq ''
+    it "still renders nothing for an unknown, non-forbidden method" do
+      expect(evaluate("{{no_such_method}}")).to eq ""
     end
 
     # Roughly sixty lexable names collide with a private Kernel method. They are

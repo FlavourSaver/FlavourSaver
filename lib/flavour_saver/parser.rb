@@ -1,5 +1,5 @@
-require 'flavour_saver/error'
-require 'flavour_saver/nodes'
+require "flavour_saver/error"
+require "flavour_saver/nodes"
 
 module FlavourSaver
   # Recursive descent parser for the token stream produced by Lexer.
@@ -28,7 +28,7 @@ module FlavourSaver
     class UnbalancedBlockError < Error; end
 
     class NotInLanguage < Error
-      def initialize(message = 'String not in language.')
+      def initialize(message = "String not in language.")
         super
       end
     end
@@ -90,7 +90,7 @@ module FlavourSaver
     def parse_expression
       case peek(1)
       when :HASH then parse_block
-      when :HAT  then parse_block
+      when :HAT then parse_block
       when :BANG then parse_comment
       when :AMP
         expect(:EXPRST)
@@ -211,7 +211,7 @@ module FlavourSaver
     def parse_call
       if peek == :DOT && peek(1) != :DOT
         advance
-        return [CallNode.new('this', [])]
+        return [CallNode.new("this", [])]
       end
 
       path = parse_object_path
@@ -286,7 +286,7 @@ module FlavourSaver
       while [:DOT, :FWSL].include?(peek)
         advance
         # Accomodates objects dereferenced with a number like foo.0.text
-        path << (peek == :NUMBER ? LiteralCallNode.new(advance.value, []) : parse_object)
+        path << ((peek == :NUMBER) ? LiteralCallNode.new(advance.value, []) : parse_object)
       end
       path
     end
@@ -340,7 +340,7 @@ module FlavourSaver
     end
 
     def skip_white(offset)
-      peek(offset) == :WHITE ? offset + 1 : offset
+      (peek(offset) == :WHITE) ? offset + 1 : offset
     end
 
     def advance
