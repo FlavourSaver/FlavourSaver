@@ -1,13 +1,10 @@
 require 'tilt'
 require 'flavour_saver'
 
-# Rendering uses more stack per level than parsing, and a Fiber gets a much
-# smaller stack than the main thread. These are the two constructs that use
-# the most stack per level, nested as deeply as the parser allows.
+# The two constructs that use the most stack per level.
 describe 'Rendering at the nesting depth limit inside a Fiber' do
   subject do
-    # Build these outside the Fiber: RSpec memoizes `let` behind a mutex,
-    # which can't be unlocked from another Fiber.
+    # RSpec memoizes `let` behind a mutex that another Fiber can't unlock.
     compiled = Tilt['handlebars'].new { template }
     scope = context
     Fiber.new { compiled.render(scope) }.resume
