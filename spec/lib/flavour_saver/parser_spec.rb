@@ -370,41 +370,41 @@ describe FlavourSaver::Parser do
     end
   end
 
-  describe 'nesting depth' do
+  describe "nesting depth" do
     let(:max) { FlavourSaver::Parser::MAX_DEPTH }
     let(:parse) { ->(template) { FlavourSaver::Parser.parse(FlavourSaver::Lexer.lex(template)) } }
 
     def blocks(depth)
-      ('{{#foo}}' * depth) + ('{{/foo}}' * depth)
+      ("{{#foo}}" * depth) + ("{{/foo}}" * depth)
     end
 
     def subexpressions(depth)
-      "{{foo #{'(foo ' * depth}bar#{')' * depth}}}"
+      "{{foo #{"(foo " * depth}bar#{")" * depth}}}"
     end
 
-    it 'allows blocks nested up to the limit' do
-      expect { parse.(blocks(max)) }.not_to raise_error
+    it "allows blocks nested up to the limit" do
+      expect { parse.call(blocks(max)) }.not_to raise_error
     end
 
-    it 'raises NotInLanguage for blocks nested past the limit' do
-      expect { parse.(blocks(max + 1)) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
+    it "raises NotInLanguage for blocks nested past the limit" do
+      expect { parse.call(blocks(max + 1)) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
     end
 
-    it 'allows subexpressions nested up to the limit' do
-      expect { parse.(subexpressions(max)) }.not_to raise_error
+    it "allows subexpressions nested up to the limit" do
+      expect { parse.call(subexpressions(max)) }.not_to raise_error
     end
 
-    it 'raises NotInLanguage for subexpressions nested past the limit' do
-      expect { parse.(subexpressions(max + 1)) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
+    it "raises NotInLanguage for subexpressions nested past the limit" do
+      expect { parse.call(subexpressions(max + 1)) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
     end
 
-    it 'counts blocks and subexpressions together' do
-      template = ('{{#foo}}' * max) + '{{bar (baz)}}' + ('{{/foo}}' * max)
-      expect { parse.(template) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
+    it "counts blocks and subexpressions together" do
+      template = ("{{#foo}}" * max) + "{{bar (baz)}}" + ("{{/foo}}" * max)
+      expect { parse.call(template) }.to raise_error(FlavourSaver::Parser::NotInLanguage, /more than #{max} levels/)
     end
 
-    it 'raises NotInLanguage rather than SystemStackError inside a Fiber' do
-      expect { Fiber.new { parse.(blocks(10_000)) }.resume }.to raise_error(FlavourSaver::Parser::NotInLanguage)
+    it "raises NotInLanguage rather than SystemStackError inside a Fiber" do
+      expect { Fiber.new { parse.call(blocks(10_000)) }.resume }.to raise_error(FlavourSaver::Parser::NotInLanguage)
     end
   end
 end
