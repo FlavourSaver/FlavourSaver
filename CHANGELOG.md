@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 5.0.0
+
 ### Removed
 
 * The `rltk` dependency, and with it its transitive `ffi` native extension.
