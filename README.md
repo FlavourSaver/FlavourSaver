@@ -8,7 +8,7 @@
 
 - Works with Rails, and with Sinatra or anything else that uses [Tilt](https://github.com/jeremyevans/tilt)
 - One runtime dependency (`tilt`), no native extensions
-- Ruby 3.1+, tested on 3.1 through 4.0
+- Ruby 3.2+, tested on 3.2 through 4.0
 
 ## Installation
 
