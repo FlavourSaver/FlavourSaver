@@ -20,12 +20,12 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version = FlavourSaver::VERSION
 
-  gem.required_ruby_version = ">= 3.1.0"
+  gem.required_ruby_version = ">= 3.2.0"
 
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "standard"
-  gem.add_development_dependency "activesupport", "~> 7.2.0"
+  gem.add_development_dependency "activesupport", "~> 8.0.5"
 
   gem.add_dependency "tilt", "~> 2.6"
 end
